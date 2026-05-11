@@ -7,5 +7,9 @@ initializeApp();
 function initializeApp() {
 
     // Renderer siden til registrering af udgifter
-    renderDriverExpensePage();
+   // renderDriverExpensePage();
+
+
+    // Renderer siden til kort med afhentninger
+    renderDriverMap();
 }

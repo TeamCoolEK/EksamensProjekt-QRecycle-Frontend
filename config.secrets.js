@@ -1,0 +1,4 @@
+
+window.APP_CONFIG.supabaseUrl = "https://mnqxmxawiefdxoqrdtgr.supabase.co/rest/v1/"
+window.APP_CONFIG.supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ucXhteGF3aWVmZHhvcXJkdGdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NTYyOTAsImV4cCI6MjA5MzQzMjI5MH0.ryCn8F6WTN6E8ghLnxgHsjg4sSUHq9X8xbJ7oasi5Ww"
+window.APP_CONFIG.googleMapsApiKey = "AIzaSyCSNA_6_1DtXYkftrRfQ9IIKi8h6IANwOA"
