@@ -1,7 +1,3 @@
-// Henter API base URL fra config.js
-const BASE_URL = window.APP_CONFIG.apiBaseUrl;
-
-
 // Renderer siden til registrering af udgifter
 function renderDriverExpensePage() {
 
