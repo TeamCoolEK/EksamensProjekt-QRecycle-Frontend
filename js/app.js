@@ -1,11 +1,26 @@
 // app.js
 
+// Global API base URL
+const BASE_URL = window.APP_CONFIG.apiBaseUrl;
+
+
 // Starter hele applikationen
 initializeApp();
+
 
 // Initialiserer appen
 function initializeApp() {
 
-    // Renderer siden til registrering af udgifter
-    renderDriverExpensePage();
+    //Midlertidig løsning inden login siden laves
+    const currentPage = "admin";
+
+    if (currentPage === "driver") {
+
+        renderDriverExpensePage();
+    }
+
+    if (currentPage === "admin") {
+
+        renderAdminUserPage();
+    }
 }
