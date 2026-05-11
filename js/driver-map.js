@@ -34,7 +34,7 @@ function renderDriverMap() {
 
                 <!-- Tilføj ny adresse manuelt -->
                 <div class="add-address">
-                    <p>Ny adresse?</p>
+                    <p>Tilføj midlertidig adresse?</p>
                     <input type="text" id="newAddress" placeholder="Indtast adresse">
                     <button onclick="addManualStop()">Tilføj</button>
                 </div>
