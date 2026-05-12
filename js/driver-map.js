@@ -27,6 +27,8 @@ function renderDriverMap() {
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
+                <!-- Opdater listen -->
+                <button onclick="fetchAndBuildRoute()">🔄 Opdater listen</button>
 
                 <!-- Tilføj ny adresse manuelt -->
                 <div class="add-address">
@@ -264,3 +266,4 @@ function closeModal() {
 function toggleMenu() {
     document.getElementById('sidebar').classList.toggle('open')
 }
+
