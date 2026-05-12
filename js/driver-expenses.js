@@ -1,13 +1,10 @@
-// Henter API base URL fra config.js
-const BASE_URL = window.APP_CONFIG.apiBaseUrl;
-
-
 // Renderer siden til registrering af udgifter
 function renderDriverExpensePage() {
 
     document.getElementById("app").innerHTML = `
 
         <h1>Registrer udgift</h1>
+
         <form id="expenseForm">
 
             <input
@@ -15,43 +12,46 @@ function renderDriverExpensePage() {
                 type="text"
                 placeholder="Titel"
             >
+
             <input
                 id="expenseAmount"
                 type="number"
                 placeholder="Beløb"
             >
+
             <input
                 id="expenseReceipt"
                 type="file"
                 accept="image/*"
             >
+
             <img
                 id="previewImage"
                 width="200"
                 style="display: none;"
             >
+
             <button type="submit">
                 Gem udgift
             </button>
+
         </form>
+
         <p id="expenseMessage"></p>
     `;
+
+    // Starter events
     setupExpenseEvents();
 }
 
 // Opretter events til expense funktionalitet
 function setupExpenseEvents() {
 
-    document
-        .getElementById("expenseForm")
-        .addEventListener("submit", handleExpenseSubmit);
-
-    document
-        .getElementById("expenseReceipt")
-        .addEventListener("change", handleImagePreview);
+    document.getElementById("expenseForm").addEventListener("submit", handleExpenseSubmit);
+    document.getElementById("expenseReceipt").addEventListener("change", handleImagePreview);
 }
 
-// Viser billede på siden når det uploades
+// Viser preview billede når bruger uploader fil
 async function handleImagePreview() {
 
     const file = document.getElementById("expenseReceipt").files[0];
@@ -73,32 +73,59 @@ async function handleImagePreview() {
 // Håndterer submit af formular
 async function handleExpenseSubmit(event) {
 
+    // Stopper reload af side
     event.preventDefault();
-    const expense = await buildExpenseObject();
 
+    // Bygger expense objekt
+    const expense =
+        await buildExpenseObject();
+
+    // Validerer data
     if (!validateExpense(expense)) {
-        showExpenseMessage("Udfyld alle felter korrekt");
+
+        showExpenseMessage(
+            "Udfyld alle felter korrekt"
+        );
+
         return;
     }
-    saveExpense(expense);
+
+    try {
+
+        // Sender expense til backend
+        const response = await saveExpense(expense);
+
+        console.log(response);
+
+        // Viser succes besked
+        showExpenseMessage("Udgift gemt");
+
+        // Resetter formular
+        document.getElementById("expenseForm").reset();
+
+        // Skjuler preview billede
+        document.getElementById("previewImage").style.display = "none";
+
+    } catch (error) {
+
+        console.log(error);
+
+        showExpenseMessage(
+            "Fejl ved gemning"
+        );
+    }
 }
 
-// Bygger expense objekt fra inputfelterne
+// Bygger expense objekt fra inputfelter
 async function buildExpenseObject() {
 
-    const file =
-        document.getElementById("expenseReceipt").files[0];
-
-    const receiptBase64 =
-        file ? await imageToBase64(file) : null;
+    const file = document.getElementById("expenseReceipt").files[0];
+    const receiptBase64 = file ? await imageToBase64(file) : null;
 
     return {
 
-        title:
-        document.getElementById("expenseTitle").value,
-
-        amount:
-            Number(document.getElementById("expenseAmount").value),
+        title: document.getElementById("expenseTitle").value,
+        amount: Number(document.getElementById("expenseAmount").value),
 
         receiptBase64:
         receiptBase64
@@ -113,75 +140,50 @@ function validateExpense(expense) {
         && expense.receiptBase64 !== null;
 }
 
-
-// Konverterer billede til Base64 string
+// Konverterer billede til Base64
 function imageToBase64(file) {
 
     return new Promise((resolve, reject) => {
-
         const reader = new FileReader();
 
+        // Returnerer base64 string
         reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
 
+        // Returnerer fejl
+        reader.onerror = error => reject(error);
+        // Læser fil
         reader.readAsDataURL(file);
     });
 }
 
 
 // Sender expense til backend API
-function saveExpense(expense) {
+async function saveExpense(expense) {
 
-    fetch(BASE_URL + "/driver/expenses", {
+    const response = await fetch(
+        `${window.APP_CONFIG.apiBaseUrl}/driver/expenses`,
+        {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
 
-        method: "POST",
+            // Sender session cookie med request
+            credentials: "include",
+            body: JSON.stringify(expense)
+        }
+    );
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+    // Hvis request fejler
+    if (!response.ok) {
+        const errorText =
+            await response.text();
+        throw new Error(errorText);
+    }
 
-        credentials: "include",
-
-        body: JSON.stringify(expense)
-    })
-
-        .then(res => {
-
-            if (!res.ok) {
-                throw new Error("Kunne ikke gemme");
-            }
-
-            return res.text();
-        })
-
-        .then(data => {
-
-            console.log(data);
-
-            showExpenseMessage("Udgift gemt");
-
-            document
-                .getElementById("expenseForm")
-                .reset();
-
-            document
-                .getElementById("previewImage")
-                .style.display = "none";
-        })
-
-        .catch(err => {
-
-            console.log(err);
-
-            showExpenseMessage("Fejl ved gemning");
-        });
+    // Returnerer response text
+    return await response.text();
 }
 
-
-// Viser besked til brugeren
+// Viser besked til bruger
 function showExpenseMessage(message) {
-
-    document
-        .getElementById("expenseMessage")
-        .textContent = message;
+    document.getElementById("expenseMessage").textContent = message;
 }
