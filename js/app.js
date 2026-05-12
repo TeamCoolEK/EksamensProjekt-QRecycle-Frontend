@@ -9,7 +9,7 @@ initializeApp();
 function initializeApp() {
 
     // Midlertidig løsning inden login side laves
-    const currentPage = "business";
+    const currentPage = "driver";
 
     // Chauffør side
     if (currentPage === "driver") {
