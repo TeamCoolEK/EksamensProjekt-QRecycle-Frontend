@@ -1,4 +1,3 @@
-// app.js
 // Global API base URL
 const BASE_URL = window.APP_CONFIG.apiBaseUrl;
 
@@ -8,20 +7,28 @@ initializeApp();
 // Initialiserer appen
 function initializeApp() {
 
-    // Midlertidig løsning inden login side laves
-    const currentPage = "business";
+    /* Renderer siden til kort med afhentninger som det første når appen starter.
+   renderDriverExpensePage(); bliver kaldt når chaufføren eller admin klikker på tilføj udgift i sidepanelet.
+    */
+    renderDriverMap();
 
-    // Chauffør side
+    // Midlertidig løsning
+    const currentPage = "adminDashboard";
+
+    //Admin dashboard
+    if (currentPage === "adminDashboard") {
+        renderAdminDashboardPage();
+    }
+    // Chauffør udgift side
     if (currentPage === "driver") {
         renderDriverExpensePage();
     }
 
-    // Admin opret bruger side
+    // Admin oprettelse af bruger
     if (currentPage === "admin") {
         renderAdminUserPage();
     }
-
-    // Opret virksomhed side
+    //Admin oprettelse af virksomhed
     if (currentPage === "business") {
         renderBusinessPage();
     }
