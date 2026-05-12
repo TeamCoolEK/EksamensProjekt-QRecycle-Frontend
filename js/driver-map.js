@@ -1,15 +1,11 @@
 // js/driver-map.js
+// Henter API base URL fra config.js
+const BASE_URL = window.APP_CONFIG.apiBaseUrl;
 
 let map = null
 let directionsService = null
 let directionsRenderer = null
 let collections = []
-
-// Supabase klient fra config.secrets.js
-const supabase = window.supabase.createClient(
-    window.APP_CONFIG.supabaseUrl,
-    window.APP_CONFIG.supabaseAnonKey //en nøgle der giver læse/skrive adgang til databasen.
-)
 
 
 function renderDriverMap() {
@@ -27,7 +23,7 @@ function renderDriverMap() {
             <!-- Sidebar -->
             <div class="sidebar" id="sidebar">
 
-                <!-- Adresser fra Supabase -->
+                <!-- Adresser fra backend -->
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
@@ -102,26 +98,16 @@ async function initMap() {
 async function fetchAndBuildRoute() {
     const stopList = document.getElementById('stopList')
 
-    const { data, error } = await supabase
-        .from('Collection')
-        .select(`
-            id,
-            status,
-            bags,
-            Business (
-                id,
-                name,
-                address
-            )
-        `)
-        .eq('status', 1)
+    // Hent aktive afhentninger fra Java backend
+    const response = await fetch(`${BASE_URL}/driver/collections/active`)
 
-    if (error) {
+    if (!response.ok) {
         stopList.innerHTML = '<p>Kunne ikke hente afhentninger.</p>'
         return
     }
 
-    collections = data.filter(c => c.Business?.address)
+    const data = await response.json()
+    collections = data.filter(c => c.address)
 
     if (collections.length === 0) {
         stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>'
@@ -139,10 +125,9 @@ function renderStopList() {
     stopList.innerHTML = collections.map(c => `
         <div class="stop-item" id="stop-${c.id}">
             <div class="stop-info" onclick="onStopChecked(${c.id})">
-                <strong>${c.Business.name}</strong>
-                <small>${c.Business.address}</small>
+                <strong>${c.businessName}</strong>
+                <small>${c.address}</small>
             </div>
-            <!-- Kryds til at fjerne stop fra ruten -->
             <button class="remove-btn" onclick="removeStop(${c.id})">×</button>
         </div>
     `).join('')
@@ -150,14 +135,14 @@ function renderStopList() {
 
 
 function calculateRoute() {
-    const addresses = collections.map(c => c.Business.address)
+    // Brug businessAddress i stedet for c.Business.address
+    const addresses = collections.map(c => c.address)
 
     if (addresses.length === 0) {
         directionsRenderer.set('directions', null)
         return
     }
 
-    // Kun ét stop — vis bare en markør
     if (addresses.length === 1) {
         new google.maps.Geocoder().geocode({ address: addresses[0] }, (results, status) => {
             if (status === 'OK') {
@@ -165,7 +150,7 @@ function calculateRoute() {
                 new google.maps.Marker({
                     map,
                     position: results[0].geometry.location,
-                    title: collections[0].Business.name
+                    title: collections[0].businessName
                 })
             }
         })
@@ -199,13 +184,11 @@ function addManualStop() {
 
     if (!address) return
 
-    // Tilføj som et midlertidigt stop uden Supabase id
-    const tempId = 'manual-' + Date.now()
+    // Tilføj som et midlertidigt stop
     collections.push({
         id: tempId,
-        status: 1,
-        bags: null,
-        Business: { id: null, name: address, address: address }
+        businessName: address,
+        address: address
     })
 
     input.value = ''
@@ -227,15 +210,15 @@ function onStopChecked(collectionId) {
     const collection = collections.find(c => c.id === collectionId)
     if (!collection) return
 
-    document.getElementById('modalTitle').textContent = collection.Business.name
-    document.getElementById('modalAddress').textContent = collection.Business.address
+    document.getElementById('modalTitle').textContent = collection.businessName
+    document.getElementById('modalAddress').textContent = collection.address
     document.getElementById('bagCount').value = ''
     document.getElementById('bagModal').style.display = 'flex'
     document.getElementById('bagModal').dataset.collectionId = collectionId
 }
 
 
-// Bekræft afhentning — opdater Supabase og fjern stop
+// Bekræft afhentning
 async function confirmPickup() {
     const modal = document.getElementById('bagModal')
     const collectionId = modal.dataset.collectionId
@@ -246,20 +229,20 @@ async function confirmPickup() {
         return
     }
 
-    // Spring Supabase over hvis det er et manuelt tilføjet stop
+    // Spring backend over hvis manuelt tilføjet stop
     if (!collectionId.toString().startsWith('manual')) {
-        const { error } = await supabase
-            .from('Collection')
-            .update({ status: 2, bags: bagCount })
-            .eq('id', parseInt(collectionId))
+        const response = await fetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ driverBags: bagCount })
+        })
 
-        if (error) {
+        if (!response.ok) {
             alert('Noget gik galt. Prøv igen.')
             return
         }
     }
 
-    // Fjern stop fra liste og genberegn rute
     collections = collections.filter(c => c.id.toString() !== collectionId.toString())
     document.getElementById(`stop-${collectionId}`)?.remove()
     closeModal()
