@@ -1,0 +1,269 @@
+
+/*Basic general styling*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+#app {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin: 30px 0;
+    font-size: 28px;
+}
+
+h2 {
+    color: #34495e;
+    margin: 20px 0 15px;
+    font-size: 22px;
+}
+
+h3 {
+    color: #2c3e50;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/*Pant-status container*/
+.status-container {
+    margin-bottom: 30px;
+}
+
+.status-card {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #95a5a6;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.status-card h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.status-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.status-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.status-details p {
+    margin: 8px 0;
+    color: #555;
+    font-size: 16px;
+}
+
+/* Pant status farver - baseret på enum */
+.status-not-ready {
+    border-left-color: #e74c3c;
+}
+
+.status-not-ready .status-value {
+    color: #e74c3c;
+}
+
+.status-ready {
+    border-left-color: #27ae60;
+}
+
+.status-ready .status-value {
+    color: #27ae60;
+}
+
+.status-picked-up {
+    border-left-color: #95a5a6;
+}
+
+.status-picked-up .status-value {
+    color: #95a5a6;
+}
+
+/* Pant status error visning */
+.status-error {
+    background: #ffebee;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 5px solid #e74c3c;
+    color: #c62828;
+}
+
+.error-detail {
+    font-size: 14px;
+    margin-top: 10px;
+    opacity: 0.8;
+}
+
+/*Form styling*/
+form {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 16px;
+}
+
+/* Input felter (QE-74) */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="file"],
+select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+input[type="number"] {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/*Knap styling*/
+button,
+button[type="submit"] {
+    width: 100%;
+    padding: 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+button:active {
+    background-color: #3d8b40;
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/*Beskeder*/
+#pickupMessage,
+#expenseMessage,
+#userMessage {
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 600;
+    min-height: 20px;
+    animation: slideIn 0.3s ease-out;
+}
+
+/*Lister*/
+#userList {
+    list-style: none;
+    padding: 0;
+}
+
+#userList li {
+    background: white;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/*Billede preview(driver-expenses)*/
+#previewImage {
+    display: block;
+    margin: 15px auto;
+    border-radius: 4px;
+    max-width: 100%;
+    height: auto;
+}
+
+/*Animations*/
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/*Responsiv(mobil)*/
+@media (max-width: 768px) {
+    #app {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    form {
+        padding: 20px;
+    }
+
+    .status-card {
+        padding: 20px;
+    }
+}
+
