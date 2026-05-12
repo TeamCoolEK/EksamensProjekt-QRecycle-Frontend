@@ -8,7 +8,7 @@ let collections = []
 // Supabase klient fra config.secrets.js
 const supabase = window.supabase.createClient(
     window.APP_CONFIG.supabaseUrl,
-    window.APP_CONFIG.supabaseAnonKey
+    window.APP_CONFIG.supabaseAnonKey //en nøgle der giver læse/skrive adgang til databasen.
 )
 
 
