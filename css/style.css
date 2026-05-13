@@ -23,6 +23,96 @@ body {
     min-height: 100vh;
 }
 
+/* Pop-up til antal poser */
+#bagModal {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: auto;
+}
+/* Knappen ved siden af virksomhedsnavnet */
+.stop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.pickup-btn {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: 8px;
+}
+
+.pickup-btn:hover {
+    background-color: #1b5e20;
+}
+
+/* Succes emoji animation */
+.success-emoji {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8rem;
+    z-index: 2000;
+    pointer-events: none;
+    animation: emojiPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes emojiPop {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.success-emoji.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Forbedret Modal styling */
+#bagModal {
+    display: none; /* Styrkes af JS display: flex/none */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
 h1 {
     color: #2c3e50;
     text-align: center;
@@ -349,6 +439,10 @@ button:disabled {
         max-width: 800px;
         /* Navbar */
 
+        .nav-logo {
+            height: 40px;
+        }
+
         .navbar {
             display: flex;
             align-items: center;
@@ -591,4 +685,6 @@ button:disabled {
             display: none;
         }
     }
+
+
 }
