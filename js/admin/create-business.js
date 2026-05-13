@@ -1,3 +1,5 @@
+import { BASE_URL } from '../../config.js';
+
 // Renderer siden til oprettelse af virksomheder
 function renderBusinessPage() {
 

@@ -1,3 +1,1 @@
-
-
-window.APP_CONFIG.googleMapsApiKey = "AIzaSyCSNA_6_1DtXYkftrRfQ9IIKi8h6IANwOA"
+export const MAPS_API_KEY = "AIzaSyCSNA_6_1DtXYkftrRfQ9IIKi8h6IANwOA"
