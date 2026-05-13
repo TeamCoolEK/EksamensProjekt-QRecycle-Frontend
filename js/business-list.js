@@ -273,41 +273,58 @@ function cancelEditBusiness() {
     document.getElementById("editBusinessContainer").innerHTML = "";
 }
 
+// Viser bekræftelsesdialog før sletning
 function confirmDeleteBusiness(businessId) {
 
+    // Spørger admin om virksomheden skal slettes
     const confirmed = confirm("Er du sikker på, at du vil slette virksomheden?");
 
+    // Stopper funktionen hvis admin trykker annuller
     if (!confirmed) {
         return;
     }
 
+    // Kalder delete funktionen hvis admin bekræfter
     deleteBusiness(businessId);
 }
 
+// Sletter virksomhed fra backend
 function deleteBusiness(businessId) {
 
+    // Sender DELETE request til backend
     fetch(BASE_URL + "/admin/businesses/" + businessId, {
         method: "DELETE", credentials: "include"
     })
         .then(res => {
 
+            // Hvis request fejler, læses fejlbesked fra backend
             if (!res.ok) {
                 return res.text().then(errorMessage => {
                     throw new Error(errorMessage);
                 });
             }
+
+            // Returnerer tekst response fra backend
             return res.text();
         })
         .then(() => {
 
-            document.getElementById("businessListMessage").textContent = "Virksomhed slettet";
+            // Viser bekræftelse til admin
+            document.getElementById("businessListMessage").textContent =
+                "Virksomhed slettet";
+
+            // Fjerner eventuel redigeringsformular
             document.getElementById("editBusinessContainer").innerHTML = "";
 
+            // Henter listen igen så virksomheden fjernes fra visningen
             loadAllBusinesses();
         })
         .catch(error => {
 
+            // Logger fejl i console
             console.log(error);
+
+            // Viser fejlbesked på siden
             document.getElementById("businessListMessage").textContent =
                 "Fejl: " + error.message;
         });
