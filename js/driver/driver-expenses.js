@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../config.js';
 // Renderer siden til registrering af udgifter
 function renderDriverExpensePage() {
 

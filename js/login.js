@@ -1,11 +1,14 @@
+import { BASE_URL } from '../config.js';
 
+import { navigate } from './app.js';
 
-renderLoginForm();
-
-function renderLoginForm() {
-    const app = document.getElementById('app')
-
-    app.innerHTML = `
+//expoterer funktionen til app.js
+export function initLogin(content) {
+    renderLoginForm(content);
+}
+//funktion til at vise html
+function renderLoginForm(content) {
+    content.innerHTML = `
         <nav class="navbar">
             <span></span>
             <span class="nav-title">Log ind</span>
@@ -26,16 +29,22 @@ function renderLoginForm() {
                     <input type="password" id="password" placeholder="Indtast adgangskode" autocomplete="current-password">
                 </div>
 
-                <button class="login-btn" onclick="handleLogin()">Log ind</button>
+                <button class="login-btn">Log ind</button>
             </div>
         </div>
-    `
+    `;
+    //tilføjer handleLogin til login knappen
+    content.querySelector('.login-btn').addEventListener('click', handleLogin);
 }
-
+//funktion til at håndtere login request
 async function handleLogin() {
     const username = document.getElementById('username').value.trim()
     const password = document.getElementById('password').value
     const btn = document.querySelector('.login-btn')
+
+    console.log('handleLogin kaldt')
+    console.log('BASE_URL:', BASE_URL)
+    console.log('username:', username)
 
     if (!username || !password) {
         showLoginError('Udfyld alle felter.')
@@ -44,13 +53,17 @@ async function handleLogin() {
 
     btn.disabled = true
     btn.textContent = 'Logger ind...'
-
+    //fetcher post til login endpoint og gemmer JWT token i header
     try {
+        //fetcher login api kald
         const response = await fetch(BASE_URL + '/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         })
+
+        console.log('status:', response.status)
+        console.log('token:', response.headers.get('Authorization'))
 
         if (response.status === 401 || response.status === 403) {
             showLoginError('Forkert brugernavn eller adgangskode.')
@@ -62,7 +75,7 @@ async function handleLogin() {
             return
         }
 
-        // Token comes from the response header, not the body
+        // henter token fra header og sætter i localStorage
         const token = response.headers.get('Authorization')
         if (!token) {
             showLoginError('Login fejlede. Prøv igen.')
@@ -70,12 +83,12 @@ async function handleLogin() {
         }
 
         localStorage.setItem('jwt', token)
-
-        initializeApp();
+        //kalder navigate fra app.js
+        await navigate(window.location.hash);
 
     } catch (err) {
         showLoginError('Serverfejl. Prøv igen.')
-    } finally {
+    } finally { //resetter knap til sidst
         btn.disabled = false
         btn.textContent = 'Log ind'
     }
