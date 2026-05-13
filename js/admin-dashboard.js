@@ -14,7 +14,7 @@ function renderAdminDashboardPage() {
         </div>
 
         <div>
-            <button onclick="renderBusinessPage()">
+            <button onclick="renderAdminBusinessListPage()">
                 Virksomhedsadministration
             </button>
 
@@ -37,6 +37,7 @@ function renderAdminDashboardPage() {
             <button onclick="renderDriverExpensePage()">
                 Udgifter
             </button>
+
         </div>
 
         <p id="dashboardMessage"></p>
