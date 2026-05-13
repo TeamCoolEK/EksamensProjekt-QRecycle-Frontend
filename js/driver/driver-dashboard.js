@@ -1,5 +1,11 @@
 // Henter API base URL fra config.js
-// const BASE_URL = window.APP_CONFIG.apiBaseUrl; //bliver allerede hentet fra app.js
+import { BASE_URL } from '../../config.js';
+
+import { MAPS_API_KEY } from "../../config.secrets";
+
+export function initDriverDashboard() {
+    renderDriverMap();
+}
 
 let map = null
 let directionsService = null
@@ -78,7 +84,7 @@ function loadGoogleMapsScript() {
 
     const script = document.createElement('script')
     script.id = 'gmaps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${window.APP_CONFIG.googleMapsApiKey}&callback=initMap`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&callback=initMap`
     script.async = true
     script.defer = true
     document.body.appendChild(script)

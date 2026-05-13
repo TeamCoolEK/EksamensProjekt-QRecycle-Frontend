@@ -1,3 +1,8 @@
+import { BASE_URL } from '../../config.js';
+
+export function initAdminDashboard() {
+    renderAdminDashboardPage();
+}
 // Renderer admin dashboard siden
 function renderAdminDashboardPage() {
 
@@ -14,7 +19,7 @@ function renderAdminDashboardPage() {
         </div>
 
         <div>
-            <button onclick="renderBusinessPage()">
+            <button onclick="renderAdminBusinessListPage()">
                 Virksomhedsadministration
             </button>
 
@@ -37,6 +42,7 @@ function renderAdminDashboardPage() {
             <button onclick="renderDriverExpensePage()">
                 Udgifter
             </button>
+
         </div>
 
         <p id="dashboardMessage"></p>
@@ -48,11 +54,10 @@ function renderAdminDashboardPage() {
 
 // Henter dashboard data fra backend
 function loadDashboardData() {
+    const token = localStorage.getItem('jwt')
     fetch(BASE_URL + "/admin/dashboard", {
         method: "GET",
-
-        // Sender login-session med request
-        credentials: "include"
+        headers: { 'Authorization': `${token}` }
     })
 
         .then(res => {

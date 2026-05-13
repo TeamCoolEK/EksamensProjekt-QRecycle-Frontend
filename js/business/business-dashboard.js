@@ -1,5 +1,10 @@
-//Renderer siden til markering af pant som klar//
+import { BASE_URL } from '../../config.js';
 
+export function initBusinessDashboard() {
+    renderBusinessPickupPage()
+}
+
+//Renderer siden til markering af pant som klar//
 function renderBusinessPickupPage() {
 
     document.getElementById("app").innerHTML = `

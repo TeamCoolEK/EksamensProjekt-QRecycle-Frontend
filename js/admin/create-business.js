@@ -1,3 +1,5 @@
+import { BASE_URL } from '../../config.js';
+
 // Renderer siden til oprettelse af virksomheder
 function renderBusinessPage() {
 
@@ -42,10 +44,6 @@ function renderBusinessPage() {
         </form>
 
         <p id="businessMessage"></p>
-
-        <h2>Virksomheder</h2>
-
-        <ul id="businessList"></ul>
     `;
 
     setupBusinessEvents();
@@ -99,7 +97,7 @@ function validateBusiness(business) {
 // Sender business til backend API
 function saveBusiness(business) {
 
-    fetch(BASE_URL + "/business/businesses", {
+    fetch(BASE_URL + "/admin/businesses", {
 
         method: "POST",
         headers: {
