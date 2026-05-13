@@ -11,10 +11,8 @@ function initializeApp() {
    renderDriverExpensePage(); bliver kaldt når chaufføren eller admin klikker på tilføj udgift i sidepanelet.
     */
 
-    renderDriverMap();
-
     // Midlertidig løsning
-    const currentPage = "adminDashboard";
+    const currentPage = 'business-pickup';
 
     //Admin dashboard
     if (currentPage === "adminDashboard") {
@@ -24,7 +22,6 @@ function initializeApp() {
     if (currentPage === "driver") {
         renderDriverExpensePage();
     }
-
     // Admin oprettelse af bruger
     if (currentPage === "admin") {
         renderAdminUserPage();
@@ -33,4 +30,11 @@ function initializeApp() {
     if (currentPage === "business") {
         renderBusinessPage();
     }
+    if (currentPage === "business-pickup"){
+        renderBusinessPickupPage()
+    }
+    if (currentPage === "driver-map"){
+        renderDriverMap()
+    }
+
 }
