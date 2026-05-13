@@ -12,7 +12,7 @@ function initializeApp() {
     */
 
     // Midlertidig løsning
-    const currentPage = 'business-pickup';
+    const currentPage = 'adminDashboard';
 
     //Admin dashboard
     if (currentPage === "adminDashboard") {
