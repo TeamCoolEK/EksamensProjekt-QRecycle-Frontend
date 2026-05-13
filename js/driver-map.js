@@ -1,6 +1,5 @@
-// js/driver-map.js
 // Henter API base URL fra config.js
-const BASE_URL = window.APP_CONFIG.apiBaseUrl;
+// const BASE_URL = window.APP_CONFIG.apiBaseUrl; //bliver allerede hentet fra app.js
 
 let map = null
 let directionsService = null
