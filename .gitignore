@@ -1,4 +1,5 @@
 
 # Hemlige keys, som aldrig må komme på GitHub, men ved en .gitignore fil som denne i roden af projektet, vil git
 # se på den når der committes og ignore den.
+
 config.secrets.js
