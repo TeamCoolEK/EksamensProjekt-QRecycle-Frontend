@@ -112,6 +112,9 @@ function displayBusinesses(businesses) {
                 <button onclick='showEditBusinessForm(${JSON.stringify(business)})'>
                     Rediger
                 </button>
+                <button onclick="confirmDeleteBusiness(${business.id})">
+                 Slet
+                 </button>
             </td>
         `;
 
@@ -268,4 +271,44 @@ function cancelEditBusiness() {
 
     // Fjerner redigeringsformularen
     document.getElementById("editBusinessContainer").innerHTML = "";
+}
+
+function confirmDeleteBusiness(businessId) {
+
+    const confirmed = confirm("Er du sikker på, at du vil slette virksomheden?");
+
+    if (!confirmed) {
+        return;
+    }
+
+    deleteBusiness(businessId);
+}
+
+function deleteBusiness(businessId) {
+
+    fetch(BASE_URL + "/admin/businesses/" + businessId, {
+        method: "DELETE", credentials: "include"
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                return res.text().then(errorMessage => {
+                    throw new Error(errorMessage);
+                });
+            }
+            return res.text();
+        })
+        .then(() => {
+
+            document.getElementById("businessListMessage").textContent = "Virksomhed slettet";
+            document.getElementById("editBusinessContainer").innerHTML = "";
+
+            loadAllBusinesses();
+        })
+        .catch(error => {
+
+            console.log(error);
+            document.getElementById("businessListMessage").textContent =
+                "Fejl: " + error.message;
+        });
 }
