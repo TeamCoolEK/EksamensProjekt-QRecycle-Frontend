@@ -41,10 +41,18 @@ import { BASE_URL } from '../config.js';
 
 // Route definitions
 const routes = {
-    '#/login':              { roles: null,                          page: 'login' },
-    '#/admin/dashboard':    { roles: ['ADMIN'],                     page: 'adminDashboard' },
-    '#/driver/dashboard':   { roles: ['ADMIN', 'DRIVER'],           page: 'driverDashboard' },
-    '#/business/dashboard': { roles: ['BUSINESS'],                  page: 'businessDashboard' },
+    //selve routen i url.    //hvilken rolle der kan tilgå.       //hvilken side der loades(fra loadPage funktionen)
+    '#/login':                { roles: null,                          page: 'login' },
+    //admin routes
+    '#/admin/dashboard':      { roles: ['ADMIN'],                     page: 'adminDashboard' },
+    '#/admin/businessList':   { roles: ['ADMIN'],                     page: 'businessList' },
+    '#/admin/createBusiness': { roles: ['ADMIN'],                     page: 'createBusiness' },
+    '#/admin/createUser':     { roles: ['ADMIN'],                     page: 'createUser' },
+    //driver routes
+    '#/driver/dashboard':     { roles: ['ADMIN', 'DRIVER'],           page: 'driverDashboard' },
+    '#/driver/createExpenses':{ roles: ['ADMIN', 'DRIVER'],           page: 'createExpenses'},
+    //business routes
+    '#/business/dashboard':   { roles: ['BUSINESS'],                  page: 'businessDashboard' },
 };
 
 // Default landing page per role
@@ -113,18 +121,38 @@ async function loadPage(page) {
     const content = document.getElementById('app');
     //switch navigere til den js der skal loades ud fra route funktionen
     switch (page) {
+        //Login page
         case 'login':
             const { initLogin } = await import('./login.js');
             initLogin(content);
             break;
-        case 'driverDashboard':
-            const { initDriverDashboard } = await import('./driver/driver-dashboard.js');
-            initDriverDashboard(content);
-            break;
+        //Admin routes
         case 'adminDashboard':
             const { initAdminDashboard } = await import('./admin/admin-dashboard.js');
             initAdminDashboard(content);
             break;
+        case 'createUser':
+            const { initCreateUser } = await import('./admin/create-user.js');
+            initCreateUser(content);
+            break;
+        case 'createBusiness':
+            const { initCreateBusiness } = await import('./admin/create-business.js');
+            initCreateBusiness(content);
+            break;
+        case 'businessList':
+            const { initBusinessList } = await import('./admin/business-list.js');
+            initBusinessList(content);
+            break;
+        //Driver routes
+        case 'driverDashboard':
+            const { initDriverDashboard } = await import('./driver/driver-dashboard.js');
+            initDriverDashboard(content);
+            break;
+        case 'createExpenses':
+            const { initDriverExpenses } = await import('./driver/create-expense.js');
+            initDriverExpenses(content);
+            break;
+        //Business routes
         case 'businessDashboard':
             const { initBusinessDashboard } = await import('./business/business-dashboard.js');
             initBusinessDashboard(content);
@@ -137,7 +165,7 @@ async function loadPage(page) {
     }
 }
 
-// Listen for hash changes
+// Listen for hash changes (sat i window så den er globalt tilgængelig)
 window.addEventListener('hashchange', async () => await navigate(window.location.hash));
 
 // Start the app

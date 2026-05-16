@@ -1,3 +1,9 @@
+import { BASE_URL } from "../../config.js";
+
+export function initBusinessList() {
+    renderAdminBusinessListPage()
+}
+
 // Renderer siden med liste over alle virksomheder
 function renderAdminBusinessListPage() {
 
@@ -7,11 +13,11 @@ function renderAdminBusinessListPage() {
         <h1>Virksomhedsadministration</h1>
 
         <div class="business-actions">
-            <button onclick="renderAdminDashboardPage()">
+            <button onclick="window.location.hash='#/admin/dashboard'">
                 Tilbage til dashboard
             </button>
 
-            <button onclick="renderBusinessPage()">
+            <button onclick="window.location.hash='#/admin/createBusiness'">
                 Opret virksomhed
             </button>
         </div>
@@ -43,11 +49,12 @@ function renderAdminBusinessListPage() {
 
 // Henter alle virksomheder fra backend
 function loadAllBusinesses() {
-
+    //henter token fra localStorage og sætter i header
+    const token = localStorage.getItem('jwt')
     // Sender GET request til admin endpoint
     fetch(BASE_URL + "/admin/businesses", {
         method: "GET",
-        credentials: "include"
+        headers: { 'Authorization': `${token}` }
     })
         .then(res => {
 
@@ -218,13 +225,14 @@ function validateUpdatedBusiness(business) {
 
 // Sender opdateret virksomhed til backend
 function updateBusiness(businessId, updatedBusiness) {
-
+    const token = localStorage.getItem('jwt');
     // Sender PUT request til backend
     fetch(BASE_URL + "/admin/businesses/" + businessId, {
         method: "PUT",
 
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `${token}`
         },
 
         credentials: "include",
@@ -290,10 +298,11 @@ function confirmDeleteBusiness(businessId) {
 
 // Sletter virksomhed fra backend
 function deleteBusiness(businessId) {
-
+    const token = localStorage.getItem('jwt');
     // Sender DELETE request til backend
     fetch(BASE_URL + "/admin/businesses/" + businessId, {
-        method: "DELETE", credentials: "include"
+        method: "DELETE",
+        headers: { "Authorization": `${token}` }
     })
         .then(res => {
 

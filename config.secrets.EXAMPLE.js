@@ -1,3 +1,3 @@
 
 // Kopiér denne fil, omdøb til config.secrets.js og indsæt jeres nøgler
-window.APP_CONFIG.googleMapsApiKey = "INDSÆT_HER"
+export const MAPS_API_KEY = "DIN_NØGLE_HER_BABY"
