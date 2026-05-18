@@ -6,7 +6,6 @@ export function initBusinessDashboard() {
 
 //Renderer siden til markering af pant som klar//
 function renderBusinessPickupPage() {
-
     document.getElementById("app").innerHTML = `
         
         <h1>Markér pant klar til afhentning</h1>
@@ -39,6 +38,16 @@ function renderBusinessPickupPage() {
         
         <!-- Viser nuværende status (QE-83) -->
         <div id="currentStatus"></div>
+        
+        <!--QE-111: Annuller afhentning knap -->
+        <button
+        id="cancelPickupBtn"
+        class="btn-cancel hidden"
+        onclick="handleCancelPickup()">
+        Annuller afhentning
+</button>
+        
+        
     `;
 
     //Starter event listeners//
@@ -61,6 +70,12 @@ function setupPickupEvents() {
     document
         .getElementById("bagsInput")
         .addEventListener("input", validateBagsInput);
+
+    //QE-111: Event listener til annuller knap//
+    const cancelBtn = document.getElementById("cancelPickupBtn");
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click",handleCancelPickup);
+    }
 }
 
 //Sikrer at input altid er mindst 1//
@@ -102,7 +117,7 @@ function loadCurrentStatus() {
 
         document.getElementById("currentStatus").innerHTML =`
           <div class="status-error">
-            <p>⚠️ Kunne ikke hente status</p>
+            <p>Kunne ikke hente status</p>
             <p class="error-detail">${err.message}</p>
           </div>
         `;
@@ -219,7 +234,6 @@ function displayCurrentStatus(collection) {
     };
 
     const statusText = statusTexts[collection.status] || collection.status;
-
     const statusClass = getStatusClass(collection.status);
 
     statusDiv.innerHTML = `
@@ -232,8 +246,18 @@ function displayCurrentStatus(collection) {
           </div>
       </div>
     `;
-}
 
+    //QE-112: Vis kun annuller-knap hvis status = KLAR//
+    const cancelBtn = document.getElementById("cancelPickupBtn");
+
+    if (cancelBtn) {
+        if (collection.status === 'KLAR') {
+            cancelBtn.classList.remove('hidden');
+        } else {
+            cancelBtn.classList.add('hidden');
+        }
+    }
+}
 
 //Reurnerer CSS klasse baseret på status//
 function getStatusClass(status) {
@@ -252,8 +276,68 @@ function formatDate(dateString) {
     const date = new Date(dateString);
 
     return date.toLocaleDateString('da-DK', {
-        day:'numeric',
-        month:'long',
+        day: 'numeric',
+        month: 'long',
         year: 'numeric'
     });
 }
+    //QE-113: Annuller afhentning funktion//
+    async function handleCancelPickup() {
+
+        //Bekræft handling med brugeren
+        if (!confirm('Er du sikker på  at du vil annullere afhentningen?')) {
+            return;
+        }
+
+        const cancelBtn = document.getElementById("cancelPickupBtn");
+        const originalText = cancelBtn.textContent;
+
+        try {
+            //disable knap og vis loading//
+            cancelBtn.disabled = true;
+            cancelBtn.textContent = 'Annullerer...';
+
+            const collectionsId = 1;
+
+            //QE-113: Kald backend API//
+            const response = await fetch(
+                BASE_URL + "/business/afhentning/" + collectionsId + "/annuller",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            //Tjek om request fejlede//
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText);
+            }
+
+            //Konverter response til JSON//
+            const updatedCollection = await response.json();
+
+            //QE-121: Vis bekræftelsesbesked//
+            showPickupMessage('Afhentningen er annulleret');
+
+            //Opdater status visning//
+            displayCurrentStatus(updatedCollection);
+
+            //Skjul success besked efter 5 sekunder//
+            setTimeout(() => {
+                document.getElementById("pickupMessage").textContent = "";
+            }, 5000);
+
+        } catch (error) {
+            console.error('Fejl ved annullering:', error);
+
+            //Vis fejlbesked//
+            showPickupMessage('Fejl: ' + error.message);
+
+            //Genaktiver knap//
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = originalText;
+        }
+    }
