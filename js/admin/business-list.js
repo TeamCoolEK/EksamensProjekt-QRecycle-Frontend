@@ -1,14 +1,20 @@
+<<<<<<< HEAD
 import { BASE_URL } from "../../config.js";
 
 export function initBusinessList() {
     renderAdminBusinessListPage()
 }
 
+=======
+export function initAdminBuisnessList(content) {
+    renderAdminBusinessListPage(content)
+}
+>>>>>>> dev
 // Renderer siden med liste over alle virksomheder
-function renderAdminBusinessListPage() {
+function renderAdminBusinessListPage(content) {
 
     // Indsætter HTML i app containeren
-    document.getElementById("app").innerHTML = `
+    content.innerHTML = `
 
         <h1>Virksomhedsadministration</h1>
 

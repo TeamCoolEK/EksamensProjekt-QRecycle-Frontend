@@ -1,14 +1,16 @@
 // imports
 import { BASE_URL } from '../../config.js';
+import { initAdminBuisnessList } from "./business-list.js";
 
-export function initAdminDashboard() {
-    renderAdminDashboardPage();
+export function initAdminDashboard(content) {
+    renderAdminDashboardPage(content);
 }
+
 // Renderer admin dashboard siden
-function renderAdminDashboardPage() {
+function renderAdminDashboardPage(content) {
 
     // Indsætter HTML i app containeren
-    document.getElementById("app").innerHTML = `
+    content.innerHTML = `
 
         <h1>Admin dashboard</h1>
         <div>
@@ -20,8 +22,12 @@ function renderAdminDashboardPage() {
         </div>
 
         <div>
+<<<<<<< HEAD
             <!--onclick referere til routen, som loader den side der skal loades fra app.js (ctrl klik routen)-->
             <button onclick="window.location.hash='#/admin/businessList'">
+=======
+            <button onclick="initAdminBuisnessList()">
+>>>>>>> dev
                 Virksomhedsadministration
             </button>
 
