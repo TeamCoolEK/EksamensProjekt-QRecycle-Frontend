@@ -4,7 +4,6 @@ export function initDriverExpenses() {
     renderDriverExpensePage();
 }
 
-// Renderer siden til registrering af udgifter
 function renderDriverExpensePage() {
 
     document.getElementById("app").innerHTML = `
@@ -46,18 +45,20 @@ function renderDriverExpensePage() {
         <p id="expenseMessage"></p>
     `;
 
-    // Starter events
     setupExpenseEvents();
 }
 
-// Opretter events til expense funktionalitet
 function setupExpenseEvents() {
 
-    document.getElementById("expenseForm").addEventListener("submit", handleExpenseSubmit);
-    document.getElementById("expenseReceipt").addEventListener("change", handleImagePreview);
+    document
+        .getElementById("expenseForm")
+        .addEventListener("submit", handleExpenseSubmit);
+
+    document
+        .getElementById("expenseReceipt")
+        .addEventListener("change", handleImagePreview);
 }
 
-// Viser preview billede når bruger uploader fil
 async function handleImagePreview() {
 
     const file = document.getElementById("expenseReceipt").files[0];
@@ -68,77 +69,48 @@ async function handleImagePreview() {
 
     const receiptBase64 = await imageToBase64(file);
 
-    const previewImage =
-        document.getElementById("previewImage");
+    const previewImage = document.getElementById("previewImage");
 
     previewImage.src = receiptBase64;
     previewImage.style.display = "block";
 }
 
-
-// Håndterer submit af formular
 async function handleExpenseSubmit(event) {
 
-    // Stopper reload af side
     event.preventDefault();
 
-    // Bygger expense objekt
-    const expense =
-        await buildExpenseObject();
+    const expense = await buildExpenseObject();
 
-    // Validerer data
     if (!validateExpense(expense)) {
-
-        showExpenseMessage(
-            "Udfyld alle felter korrekt"
-        );
-
+        showExpenseMessage("Udfyld alle felter korrekt");
         return;
     }
 
     try {
-
-        // Sender expense til backend
         const response = await saveExpense(expense);
 
         console.log(response);
 
-        // Viser succes besked
-        showExpenseMessage("Udgift gemt");
-
-        // Resetter formular
-        document.getElementById("expenseForm").reset();
-
-        // Skjuler preview billede
-        document.getElementById("previewImage").style.display = "none";
+        showSuccessAnimation();
 
     } catch (error) {
-
         console.log(error);
-
-        showExpenseMessage(
-            "Fejl ved gemning"
-        );
+        showExpenseMessage("Fejl ved gemning");
     }
 }
 
-// Bygger expense objekt fra inputfelter
 async function buildExpenseObject() {
 
     const file = document.getElementById("expenseReceipt").files[0];
     const receiptBase64 = file ? await imageToBase64(file) : null;
 
     return {
-
         title: document.getElementById("expenseTitle").value,
         amount: Number(document.getElementById("expenseAmount").value),
-
-        receiptBase64:
-        receiptBase64
+        receiptBase64: receiptBase64
     };
 }
 
-// Validerer expense data
 function validateExpense(expense) {
 
     return expense.title.trim() !== ""
@@ -146,50 +118,65 @@ function validateExpense(expense) {
         && expense.receiptBase64 !== null;
 }
 
-// Konverterer billede til Base64
 function imageToBase64(file) {
 
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        // Returnerer base64 string
         reader.onload = () => resolve(reader.result);
 
-        // Returnerer fejl
         reader.onerror = error => reject(error);
-        // Læser fil
+
         reader.readAsDataURL(file);
     });
 }
 
-
-// Sender expense til backend API
 async function saveExpense(expense) {
+
+    const token = localStorage.getItem("jwt");
 
     const response = await fetch(
         `${BASE_URL}/driver/expenses`,
         {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-
-            // Sender session cookie med request
-            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token
+            },
             body: JSON.stringify(expense)
         }
     );
 
-    // Hvis request fejler
     if (!response.ok) {
-        const errorText =
-            await response.text();
+        const errorText = await response.text();
         throw new Error(errorText);
     }
 
-    // Returnerer response text
     return await response.text();
 }
 
-// Viser besked til bruger
+function showSuccessAnimation() {
+
+    const emoji = document.createElement("div");
+
+    emoji.classList.add("success-emoji");
+
+    emoji.textContent = "👍";
+
+    document.body.appendChild(emoji);
+
+    setTimeout(() => {
+        emoji.classList.add("fade-out");
+    }, 1000);
+
+    setTimeout(() => {
+        window.location.hash = "#/driver/dashboard";
+    }, 1600);
+}
+
 function showExpenseMessage(message) {
-    document.getElementById("expenseMessage").textContent = message;
+
+    document
+        .getElementById("expenseMessage")
+        .textContent = message;
 }
