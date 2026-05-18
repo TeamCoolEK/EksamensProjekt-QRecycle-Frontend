@@ -6,6 +6,10 @@ export function initDriverDashboard() {
     renderDriverMap();
 }
 
+export function renderDriverExpenses() {
+    renderDriverMap()
+}
+
 let map = null
 let directionsService = null
 let directionsRenderer = null
@@ -16,16 +20,26 @@ function renderDriverMap() {
     const app = document.getElementById('app')
 
     app.innerHTML = `
-        <!-- Navigation bar -->
-        <nav class="navbar">
-            <button class="menu-btn" onclick="toggleMenu()">☰</button>
-            <span class="nav-title">Dagens rute</span>
-        <img src="img/logo.png" class="nav-logo" alt="Q Genbrug">        </nav>
+    <!-- Navigation bar -->
+    <nav class="navbar" onclick="toggleMenu()">
+        <button class="menu-btn">☰</button>
+        <span class="nav-title">Dagens rute</span>
+        <img src="img/logo.png" class="nav-logo" alt="Q Genbrug">
+    </nav>
 
-        <div class="layout">
+    <div class="layout">
 
-            <!-- Sidebar -->
-            <div class="sidebar" id="sidebar">
+        <!-- Overlay til at lukke sidebar ved at klikke på kortet -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+
+            <!-- Sidebar header med lukkeknap -->
+            <div class="sidebar-header">
+                <span>Luk sidepanel</span>
+                <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
+            </div>
 
                 <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend.
                 -->
@@ -43,8 +57,8 @@ function renderDriverMap() {
                 </div>
 
                 <!-- Udgift knap -->
-                <button class="expense-btn" onclick="renderDriverExpensePage()">
-                    Tilføj udgift
+                <button class="expense-btn" onclick="window.location.hash='#/driver/createExpenses'">
+                Tilføj udgift
                 </button>
 
             </div>
@@ -318,6 +332,9 @@ function closeModal() {
 
 
 function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('open')
+    const sidebar = document.getElementById('sidebar')
+    const overlay = document.getElementById('sidebarOverlay')
+    const isOpen = sidebar.classList.toggle('open')
+    overlay.classList.toggle('active', isOpen)
 }
 
