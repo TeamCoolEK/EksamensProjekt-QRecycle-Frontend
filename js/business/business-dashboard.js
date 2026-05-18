@@ -1,5 +1,5 @@
 import { BASE_URL } from '../../config.js';
-import { authFetch } from '../../utils.js'
+import { authFetch } from '../../utils.js';
 
 export function initBusinessDashboard() {
     renderBusinessPickupPage()
@@ -37,8 +37,7 @@ function renderBusinessPickupPage() {
         <!-- QE-83: Besked til brugeren -->
         <p id="pickupMessage"></p>
         
-        <!-- Viser nuværende status (QE-83) -->
-        <div id="currentStatus"></div>
+     
         
         <!--QE-111: Annuller afhentning knap -->
         <button
@@ -95,7 +94,7 @@ function loadCurrentStatus() {
     //Hent collectionId fra logged in bruger// OBS Slet ?//
     const collectionId = 1;
 
-    fetch(BASE_URL + "/business/collection/" + collectionId,{
+    authFetch(BASE_URL + "/business/afhentning/" + collectionId,{
         method: "GET"
     })
 
@@ -165,7 +164,7 @@ function validatePickup(pickupData){
 
 //Sender pickup til backend API//
 function savePickup(pickupData) {
-    fetch(BASE_URL + "/business/collection/ready", {
+    authFetch(BASE_URL + "/business/afhentning/klar", {
         method: "POST",
 
         headers: {
@@ -301,8 +300,8 @@ function formatDate(dateString) {
             const collectionsId = 1;
 
             //QE-113: Kald backend API//
-            const response = await fetch(
-                BASE_URL + "/business/collection/" + collectionsId + "/cancel",
+            const response = await authFetch(
+                BASE_URL + "/business//afhentning/" + collectionsId + "/annuller",
                 {
                     method: "POST",
                     headers: {

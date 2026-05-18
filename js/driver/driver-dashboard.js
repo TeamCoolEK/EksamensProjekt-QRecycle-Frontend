@@ -1,6 +1,6 @@
 import { BASE_URL } from '../../config.js';
 import { MAPS_API_KEY } from "../../config.secrets.js";
-import { authFetch } from '../../utils.js'
+import { authFetch } from '../../utils.js';
 
 export function initDriverDashboard() {
     renderDriverMap();
@@ -298,7 +298,7 @@ function removeStop(collectionId) {
 
 // Klik på stop — åbn pop-up til antal poser
 function onStopChecked(collectionId) {
-    const collection = collections.find(c => c.id === collectionId)
+    const collection = collections.find(c => c.id.toString() === collectionId.toString())
     if (!collection) return
 
     const isManual = collectionId.toString().startsWith('manual')
