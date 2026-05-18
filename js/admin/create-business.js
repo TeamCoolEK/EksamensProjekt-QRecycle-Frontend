@@ -120,34 +120,12 @@ function saveBusiness(business) {
         })
 
         .then(createdBusiness => {
+
             console.log(createdBusiness);
-            showBusinessMessage("Virksomhed oprettet");
-            addBusinessToList(createdBusiness);
 
-            document
-                .getElementById("createBusinessForm")
-                .reset();
+            // Sender admin tilbage til virksomhedslisten
+            window.location.hash = "#/admin/businessList";
         })
-
-        .catch(err => {
-
-            console.log(err);
-            showBusinessMessage("Fejl ved oprettelse");
-        });
-}
-
-// Tilføjer virksomhed til listen på siden
-function addBusinessToList(business) {
-
-    const businessList = document.getElementById("businessList");
-    const li = document.createElement("li");
-
-    li.textContent =
-        business.companyName
-        + " - "
-        + business.address;
-
-    businessList.appendChild(li);
 }
 
 // Viser besked til brugeren
