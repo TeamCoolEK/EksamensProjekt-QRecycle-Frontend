@@ -575,3 +575,39 @@ button:disabled {
     font-size: 0.9rem;
     display: none;
 }}}
+
+/*QE-111: Annuller afhentning knap*/
+.btn.cancel {
+    width: 100%;
+    padding: 16px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    margin-top: 20px;
+}
+
+.btn-cancel:hover {
+    background-color: #c0392b;
+}
+.btn-cancel:active {
+    background-color: #a93226;
+    transform: scale(0.98);
+}
+.btn-cancel:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+/* Touch feedback på mobil for annuller knap */
+@media (hover: none) and (pointer: coarse) {
+    .btn-cancel:active {
+        background-color: #a93226;
+    }
+}
