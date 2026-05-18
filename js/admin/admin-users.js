@@ -1,5 +1,5 @@
 // Renderer siden til oprettelse af brugere
-function renderAdminUserPage() {
+export function renderAdminUserPage() {
 
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
