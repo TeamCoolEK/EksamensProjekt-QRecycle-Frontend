@@ -1,3 +1,4 @@
+// imports
 import { BASE_URL } from '../../config.js';
 import { initAdminBuisnessList } from "./business-list.js";
 
@@ -21,28 +22,30 @@ function renderAdminDashboardPage(content) {
         </div>
 
         <div>
+<<<<<<< HEAD
+            <!--onclick referere til routen, som loader den side der skal loades fra app.js (ctrl klik routen)-->
+            <button onclick="window.location.hash='#/admin/businessList'">
+=======
             <button onclick="initAdminBuisnessList()">
+>>>>>>> dev
                 Virksomhedsadministration
             </button>
 
-            <button onclick="renderAdminUserPage()">
-                Brugeradministration
-            </button>
-
-            <button onclick="renderStatisticPage()">
+            <!--indsættes som eventlistener under html!-->
+            <button id="statistik">
                 Statistik
             </button>
 
-            <button onclick="renderBusinessPage()">
-                Opret virksomhed
-            </button>
-
-            <button onclick="renderAdminUserPage()">
+            <button onclick="window.location.hash='#/admin/createUser'">
                 Opret bruger
             </button>
 
-            <button onclick="renderDriverExpensePage()">
+            <button onclick="alert('Coming soon!')">
                 Udgifter
+            </button>
+            
+            <button onclick="alert('Coming soon!')">
+                Rute
             </button>
 
         </div>
@@ -52,6 +55,7 @@ function renderAdminDashboardPage(content) {
 
     // Henter data til dashboard
     loadDashboardData();
+    document.getElementById("statistik").addEventListener("click", renderStatisticPage);
 }
 
 // Henter dashboard data fra backend

@@ -79,7 +79,7 @@ function loadCurrentStatus() {
     //Hent collectionId fra logged in bruger// OBS Slet ?//
     const collectionId = 1;
 
-    fetch(BASE_URL + "/virksomhed/afhentning/" + collectionId,{
+    fetch(BASE_URL + "/business/afhentning/" + collectionId,{
         method: "GET"
     })
 
@@ -149,7 +149,7 @@ function validatePickup(pickupData){
 
 //Sender pickup til backend API//
 function savePickup(pickupData) {
-    fetch(BASE_URL + "/virksomhed/afhentning/klar", {
+    fetch(BASE_URL + "/business/afhentning/klar", {
         method: "POST",
 
         headers: {
