@@ -1,13 +1,15 @@
 import { BASE_URL } from '../../config.js';
+import { initAdminBuisnessList } from "./business-list.js";
 
-export function initAdminDashboard() {
-    renderAdminDashboardPage();
+export function initAdminDashboard(content) {
+    renderAdminDashboardPage(content);
 }
+
 // Renderer admin dashboard siden
-function renderAdminDashboardPage() {
+function renderAdminDashboardPage(content) {
 
     // Indsætter HTML i app containeren
-    document.getElementById("app").innerHTML = `
+    content.innerHTML = `
 
         <h1>Admin dashboard</h1>
         <div>
@@ -19,7 +21,7 @@ function renderAdminDashboardPage() {
         </div>
 
         <div>
-            <button onclick="renderAdminBusinessListPage()">
+            <button onclick="initAdminBuisnessList()">
                 Virksomhedsadministration
             </button>
 
