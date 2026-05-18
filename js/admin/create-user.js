@@ -96,45 +96,41 @@ function validateUser(user) {
 
 // Sender user til backend API
 function saveUser(user) {
-    const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem("jwt");
+
     fetch(BASE_URL + "/admin/users", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            headers: { 'Authorization': `${token}` }
+            "Authorization": token
         },
-
         body: JSON.stringify(user)
     })
 
         .then(res => {
-
-            // Tjekker om request fejlede
             if (!res.ok) {
-                throw new Error("Kunne ikke oprette bruger");
+                return res.text().then(errorMessage => {
+                    throw new Error(errorMessage);
+                });
             }
-            // Konverterer response til JSON
+
             return res.json();
         })
 
         .then(createdUser => {
-            // Viser succesbesked
             showUserMessage("Bruger oprettet");
-            // Tilføjer ny bruger til listen
+
             addUserToList(createdUser);
 
-            // Nulstiller formular
             document
                 .getElementById("createUserForm")
                 .reset();
         })
 
         .catch(err => {
-
             console.log(err);
 
-            // Viser fejlbesked
-            showUserMessage("Fejl ved oprettelse af bruger");
+            showUserMessage("Fejl: " + err.message);
         });
 }
 
