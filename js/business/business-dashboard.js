@@ -1,4 +1,5 @@
 import { BASE_URL } from '../../config.js';
+import { authFetch } from '../../utils.js'
 
 export function initBusinessDashboard() {
     renderBusinessPickupPage()
@@ -94,7 +95,7 @@ function loadCurrentStatus() {
     //Hent collectionId fra logged in bruger// OBS Slet ?//
     const collectionId = 1;
 
-    fetch(BASE_URL + "/business/afhentning/" + collectionId,{
+    authFetch(BASE_URL + "/business/afhentning/" + collectionId,{
         method: "GET"
     })
 
@@ -164,7 +165,7 @@ function validatePickup(pickupData){
 
 //Sender pickup til backend API//
 function savePickup(pickupData) {
-    fetch(BASE_URL + "/business/afhentning/klar", {
+    authFetch(BASE_URL + "/business/afhentning/klar", {
         method: "POST",
 
         headers: {

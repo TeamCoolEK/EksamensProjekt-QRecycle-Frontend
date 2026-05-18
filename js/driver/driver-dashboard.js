@@ -1,6 +1,6 @@
 import { BASE_URL } from '../../config.js';
-
 import { MAPS_API_KEY } from "../../config.secrets.js";
+import { authFetch } from '../../utils.js'
 
 export function initDriverDashboard() {
     renderDriverMap();
@@ -141,9 +141,7 @@ async function fetchAndBuildRoute() {
 
     // Sender GET request til Java backend
     // Henter alle afhentninger med status KLAR
-    const response = await fetch(`${BASE_URL}/driver/collections/active`, {
-        headers: { 'Authorization': localStorage.getItem('jwt') }
-    })
+    const response = await authFetch(`${BASE_URL}/driver/collections/active`)
 
     //fejlbesked hvis backend ikke giver svar, eller hvis status er ikke OK 200.
     if (!response.ok) {
@@ -283,12 +281,9 @@ async function confirmPickup() {
 
     // Spring backend over hvis manuelt tilføjet stop
     if (!collectionId.toString().startsWith('manual')) {
-        const response = await fetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
+        const response = await authFetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('jwt')
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ driverBags: bagCount })
         })
 
