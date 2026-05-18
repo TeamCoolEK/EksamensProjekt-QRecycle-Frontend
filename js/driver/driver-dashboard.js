@@ -1,9 +1,13 @@
 import { BASE_URL } from '../../config.js';
-
-import { MAPS_API_KEY } from "../../config.secrets";
+import { MAPS_API_KEY } from "../../config.secrets.js";
+import { authFetch } from '../../utils.js'
 
 export function initDriverDashboard() {
     renderDriverMap();
+}
+
+export function renderDriverExpenses() {
+    renderDriverMap()
 }
 
 let map = null
@@ -16,16 +20,26 @@ function renderDriverMap() {
     const app = document.getElementById('app')
 
     app.innerHTML = `
-        <!-- Navigation bar -->
-        <nav class="navbar">
-            <button class="menu-btn" onclick="toggleMenu()">☰</button>
-            <span class="nav-title">Dagens rute</span>
-        <img src="img/logo.png" class="nav-logo" alt="Q Genbrug">        </nav>
+    <!-- Navigation bar -->
+    <nav class="navbar" onclick="toggleMenu()">
+        <button class="menu-btn">☰</button>
+        <span class="nav-title">Dagens rute</span>
+        <img src="img/logo.png" class="nav-logo" alt="Q Genbrug">
+    </nav>
 
-        <div class="layout">
+    <div class="layout">
 
-            <!-- Sidebar -->
-            <div class="sidebar" id="sidebar">
+        <!-- Overlay til at lukke sidebar ved at klikke på kortet -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+
+            <!-- Sidebar header med lukkeknap -->
+            <div class="sidebar-header">
+                <span>Luk sidepanel</span>
+                <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
+            </div>
 
                 <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend.
                 -->
@@ -43,8 +57,8 @@ function renderDriverMap() {
                 </div>
 
                 <!-- Udgift knap -->
-                <button class="expense-btn" onclick="renderDriverExpensePage()">
-                    Tilføj udgift
+                <button class="expense-btn" onclick="window.location.hash='#/driver/createExpenses'">
+                Tilføj udgift
                 </button>
 
             </div>
@@ -68,6 +82,14 @@ function renderDriverMap() {
             </div>
         </div>
     `
+    window.initMap = initMap
+    window.toggleMenu = toggleMenu
+    window.fetchAndBuildRoute = fetchAndBuildRoute
+    window.addManualStop = addManualStop
+    window.removeStop = removeStop
+    window.onStopChecked = onStopChecked
+    window.confirmPickup = confirmPickup
+    window.closeModal = closeModal
 
     loadGoogleMapsScript()
 }
@@ -119,7 +141,7 @@ async function fetchAndBuildRoute() {
 
     // Sender GET request til Java backend
     // Henter alle afhentninger med status KLAR
-    const response = await fetch(`${BASE_URL}/driver/collections/active`)
+    const response = await authFetch(`${BASE_URL}/driver/collections/active`)
 
     //fejlbesked hvis backend ikke giver svar, eller hvis status er ikke OK 200.
     if (!response.ok) {
@@ -211,6 +233,7 @@ function addManualStop() {
     if (!address) return
 
     // Tilføj som et midlertidigt stop
+    const tempId = `manual-${tempIdCounter++}`
     collections.push({
         id: tempId,
         businessName: address,
@@ -258,7 +281,7 @@ async function confirmPickup() {
 
     // Spring backend over hvis manuelt tilføjet stop
     if (!collectionId.toString().startsWith('manual')) {
-        const response = await fetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
+        const response = await authFetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ driverBags: bagCount })
@@ -304,6 +327,9 @@ function closeModal() {
 
 
 function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('open')
+    const sidebar = document.getElementById('sidebar')
+    const overlay = document.getElementById('sidebarOverlay')
+    const isOpen = sidebar.classList.toggle('open')
+    overlay.classList.toggle('active', isOpen)
 }
 
