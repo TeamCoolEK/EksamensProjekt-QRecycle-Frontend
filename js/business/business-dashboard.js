@@ -94,7 +94,7 @@ function loadCurrentStatus() {
     //Hent collectionId fra logged in bruger// OBS Slet ?//
     const collectionId = 1;
 
-    fetch(BASE_URL + "/business/afhentning/" + collectionId,{
+    fetch(BASE_URL + "/business/collection/" + collectionId,{
         method: "GET"
     })
 
@@ -164,7 +164,7 @@ function validatePickup(pickupData){
 
 //Sender pickup til backend API//
 function savePickup(pickupData) {
-    fetch(BASE_URL + "/business/afhentning/klar", {
+    fetch(BASE_URL + "/business/collection/ready", {
         method: "POST",
 
         headers: {
@@ -285,7 +285,7 @@ function formatDate(dateString) {
     async function handleCancelPickup() {
 
         //Bekræft handling med brugeren
-        if (!confirm('Er du sikker på  at du vil annullere afhentningen?')) {
+        if (!confirm('Er du sikker på at du vil annullere afhentningen?')) {
             return;
         }
 
@@ -301,7 +301,7 @@ function formatDate(dateString) {
 
             //QE-113: Kald backend API//
             const response = await fetch(
-                BASE_URL + "/business/afhentning/" + collectionsId + "/annuller",
+                BASE_URL + "/business/collection/" + collectionsId + "/cancel",
                 {
                     method: "POST",
                     headers: {
