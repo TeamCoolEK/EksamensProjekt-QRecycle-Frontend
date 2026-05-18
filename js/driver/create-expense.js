@@ -162,7 +162,7 @@ function imageToBase64(file) {
 async function saveExpense(expense) {
 
     const response = await fetch(
-        `${window.APP_CONFIG.apiBaseUrl}/driver/expenses`,
+        `${BASE_URL}/driver/expenses`,
         {
             method: "POST",
             headers: {"Content-Type": "application/json"},
