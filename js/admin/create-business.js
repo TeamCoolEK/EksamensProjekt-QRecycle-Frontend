@@ -1,4 +1,8 @@
-import { BASE_URL } from '../../config.js';
+import { BASE_URL } from "../../config.js";
+
+export function initCreateBusiness() {
+    renderBusinessPage();
+}
 
 // Renderer siden til oprettelse af virksomheder
 function renderBusinessPage() {
@@ -96,12 +100,12 @@ function validateBusiness(business) {
 
 // Sender business til backend API
 function saveBusiness(business) {
-
+    const token = localStorage.getItem('jwt');
     fetch(BASE_URL + "/admin/businesses", {
-
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `${token}`
         },
         body: JSON.stringify(business)
     })

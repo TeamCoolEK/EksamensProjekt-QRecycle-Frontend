@@ -1,4 +1,3 @@
-// Henter API base URL fra config.js
 import { BASE_URL } from '../../config.js';
 
 import { MAPS_API_KEY } from "../../config.secrets";

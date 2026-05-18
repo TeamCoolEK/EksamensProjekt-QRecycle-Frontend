@@ -1,5 +1,11 @@
+import { BASE_URL } from "../../config.js";
+
+export function initCreateUser() {
+    renderAdminUserPage();
+}
+
 // Renderer siden til oprettelse af brugere
-function renderAdminUserPage() {
+export function renderAdminUserPage() {
 
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
@@ -90,11 +96,12 @@ function validateUser(user) {
 
 // Sender user til backend API
 function saveUser(user) {
-
+    const token = localStorage.getItem('jwt');
     fetch(BASE_URL + "/admin/users", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            headers: { 'Authorization': `${token}` }
         },
 
         body: JSON.stringify(user)
