@@ -14,6 +14,7 @@ let map = null
 let directionsService = null
 let directionsRenderer = null
 let collections = []
+let tempIdCounter = 0
 
 
 function renderDriverMap() {
@@ -90,6 +91,7 @@ function renderDriverMap() {
     window.onStopChecked = onStopChecked
     window.confirmPickup = confirmPickup
     window.closeModal = closeModal
+    window.doneManualStop = doneManualStop
 
     loadGoogleMapsScript()
 }
@@ -105,10 +107,25 @@ function loadGoogleMapsScript() {
 
     const script = document.createElement('script')
     script.id = 'gmaps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&callback=initMap`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&libraries=places&callback=initMap`
     script.async = true
     script.defer = true
     document.body.appendChild(script)
+}
+
+//Autocomplete funktion til at tilføje manuel adresse
+function initAutocomplete() {
+    const input = document.getElementById('newAddress')
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: 'dk' },
+        fields: ['formatted_address', 'name']
+    })
+
+    autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace()
+        if (!place.formatted_address) return
+        input.value = place.formatted_address
+    })
 }
 
 //QE-169 (Opdater ved indlæsning). Implementeret via initMap,
@@ -128,6 +145,8 @@ async function initMap() {
     // Renderer til at tegne ruten på kortet
     directionsRenderer.setMap(map)
     // Kobl rendereren til vores kort så ruten tegnes der
+
+    initAutocomplete()
 
     await fetchAndBuildRoute()
     // Hent afhentninger fra backend og byg ruten
@@ -166,20 +185,43 @@ async function fetchAndBuildRoute() {
 function renderStopList() {
     const stopList = document.getElementById('stopList')
 
-    stopList.innerHTML = collections.map(c => `
-        <div class="stop-item" id="stop-${c.id}">
+    stopList.innerHTML = collections.map(c => {
+        const isManual = c.id.toString().startsWith('manual')
+        const buttons = isManual
+            ? `<button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
+           <button class="pickup-btn done-btn" onclick="doneManualStop('${c.id}')">Done</button>`
+            : `<button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>`
+
+        return `
         <!--Opret en div per afhentning med unikt id
-        id bruges til at fjerne stopet fra DOM når det er afhentet -->
-            <div class="stop-info" onclick="onStopChecked(${c.id})">
+        id bruges til at fjerne stopet fra DOM når det er afhentet -->      
+            <div class="stop-item" id="stop-${c.id}">
+            <div class="stop-info">
                 <div class="stop-header">
-                <strong>${c.businessName}</strong>
-                <button class="pickup-btn" onclick="onStopChecked(${c.id})">Afhent</button>
-               </div>
+                    <strong>${c.businessName}</strong>
+                    <div class="stop-buttons">
+                        ${buttons}
+                    </div>
+                </div>
                 <small>${c.address}</small>
             </div>
-            <button class="remove-btn" onclick="removeStop(${c.id})">×</button>
+            <button class="remove-btn" onclick="removeStop('${c.id}')">×</button>
         </div>
-    `).join('')
+    `
+}).join('')
+}
+
+function doneManualStop(collectionId) {
+    collections = collections.filter(c => c.id.toString() !== collectionId.toString())
+    document.getElementById(`stop-${collectionId}`)?.remove()
+    showSuccessEmoji()
+
+    if (collections.length === 0) {
+        document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
+        directionsRenderer.set('directions', null)
+    } else {
+        calculateRoute()
+    }
 }
 
 //Virksomheder vises som markører på kortet. Der placeres markører via Google Maps Geocoder.
@@ -259,9 +301,16 @@ function onStopChecked(collectionId) {
     const collection = collections.find(c => c.id === collectionId)
     if (!collection) return
 
+    const isManual = collectionId.toString().startsWith('manual')
+
     document.getElementById('modalTitle').textContent = collection.businessName
     document.getElementById('modalAddress').textContent = collection.address
     document.getElementById('bagCount').value = ''
+
+    // Skift knaptekst afhængigt af om det er manuelt stop eller virksomhed som har markeret klar til afhening
+    document.querySelector('#bagModal .modal-buttons button').textContent =
+        isManual ? 'Poser ikke nødvendigt' : 'Bekræft afhentning'
+
     document.getElementById('bagModal').style.display = 'flex'
     document.getElementById('bagModal').dataset.collectionId = collectionId
 }
@@ -274,7 +323,8 @@ async function confirmPickup() {
     const bagCount = parseInt(document.getElementById('bagCount').value)
 
     //Systemet accepterer 0 og op som gyldigt antal poser
-    if (isNaN(bagCount) || bagCount < 0) {
+    const isManual = collectionId.toString().startsWith('manual')
+    if (!isManual && (isNaN(bagCount) || bagCount < 0)) {
         alert('Indtast venligst antal poser.')
         return
     }
