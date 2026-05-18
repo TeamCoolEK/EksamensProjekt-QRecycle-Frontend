@@ -1,8 +1,16 @@
+// imports
+import { BASE_URL } from '../../config.js';
+import { initAdminBuisnessList } from "./business-list.js";
+
+export function initAdminDashboard(content) {
+    renderAdminDashboardPage(content);
+}
+
 // Renderer admin dashboard siden
-function renderAdminDashboardPage() {
+function renderAdminDashboardPage(content) {
 
     // Indsætter HTML i app containeren
-    document.getElementById("app").innerHTML = `
+    content.innerHTML = `
 
         <h1>Admin dashboard</h1>
         <div>
@@ -14,29 +22,32 @@ function renderAdminDashboardPage() {
         </div>
 
         <div>
-            <button onclick="renderBusinessPage()">
+<<<<<<< HEAD
+            <!--onclick referere til routen, som loader den side der skal loades fra app.js (ctrl klik routen)-->
+            <button onclick="window.location.hash='#/admin/businessList'">
+=======
+            <button onclick="initAdminBuisnessList()">
+>>>>>>> dev
                 Virksomhedsadministration
             </button>
 
-            <button onclick="renderAdminUserPage()">
-                Brugeradministration
-            </button>
-
-            <button onclick="renderStatisticPage()">
+            <!--indsættes som eventlistener under html!-->
+            <button id="statistik">
                 Statistik
             </button>
 
-            <button onclick="renderBusinessPage()">
-                Opret virksomhed
-            </button>
-
-            <button onclick="renderAdminUserPage()">
+            <button onclick="window.location.hash='#/admin/createUser'">
                 Opret bruger
             </button>
 
-            <button onclick="renderDriverExpensePage()">
+            <button onclick="alert('Coming soon!')">
                 Udgifter
             </button>
+            
+            <button onclick="alert('Coming soon!')">
+                Rute
+            </button>
+
         </div>
 
         <p id="dashboardMessage"></p>
@@ -44,15 +55,15 @@ function renderAdminDashboardPage() {
 
     // Henter data til dashboard
     loadDashboardData();
+    document.getElementById("statistik").addEventListener("click", renderStatisticPage);
 }
 
 // Henter dashboard data fra backend
 function loadDashboardData() {
+    const token = localStorage.getItem('jwt')
     fetch(BASE_URL + "/admin/dashboard", {
         method: "GET",
-
-        // Sender login-session med request
-        credentials: "include"
+        headers: { 'Authorization': `${token}` }
     })
 
         .then(res => {
