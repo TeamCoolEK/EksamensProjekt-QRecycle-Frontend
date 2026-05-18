@@ -1,23 +1,22 @@
 import { BASE_URL } from "../../config.js";
 
 export function initBusinessList() {
-    renderAdminBusinessListPage()
+    renderAdminBusinessListPage();
 }
 
 // Renderer siden med liste over alle virksomheder
 function renderAdminBusinessListPage() {
 
-    // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
 
         <h1>Virksomhedsadministration</h1>
 
         <div class="business-actions">
-            <button onclick="window.location.hash='#/admin/dashboard'">
+            <button id="backToDashboardBtn">
                 Tilbage til dashboard
             </button>
 
-            <button onclick="window.location.hash='#/admin/createBusiness'">
+            <button id="createBusinessBtn">
                 Opret virksomhed
             </button>
         </div>
@@ -43,89 +42,109 @@ function renderAdminBusinessListPage() {
         <div id="editBusinessContainer"></div>
     `;
 
-    // Henter alle virksomheder når siden vises
+    setupPageEvents();
     loadAllBusinesses();
+}
+
+// Opretter events til navigation
+function setupPageEvents() {
+
+    document
+        .getElementById("backToDashboardBtn")
+        .addEventListener("click", function () {
+            window.location.hash = "#/admin/dashboard";
+        });
+
+    document
+        .getElementById("createBusinessBtn")
+        .addEventListener("click", function () {
+            window.location.hash = "#/admin/createBusiness";
+        });
+}
+
+// Henter JWT token
+function getToken() {
+    return localStorage.getItem("jwt");
 }
 
 // Henter alle virksomheder fra backend
 function loadAllBusinesses() {
-    //henter token fra localStorage og sætter i header
-    const token = localStorage.getItem('jwt')
-    // Sender GET request til admin endpoint
+
+    const token = getToken();
+
     fetch(BASE_URL + "/admin/businesses", {
         method: "GET",
-        headers: { 'Authorization': `${token}` }
+        headers: {
+            "Authorization": token
+        }
     })
         .then(res => {
 
-            // Tjekker om request fejlede
             if (!res.ok) {
                 throw new Error("Kunne ikke hente virksomheder");
             }
 
-            // Konverterer response til JSON
             return res.json();
         })
         .then(businesses => {
-
-            // Viser virksomhederne i tabellen
             displayBusinesses(businesses);
         })
         .catch(error => {
 
-            // Logger fejl i console
             console.log(error);
 
-            // Viser fejlbesked på siden
-            document.getElementById("businessListMessage").textContent =
-                "Kunne ikke hente virksomheder fra databasen";
+            showBusinessListMessage(
+                "Kunne ikke hente virksomheder fra databasen"
+            );
         });
 }
 
 // Viser virksomheder i tabellen
 function displayBusinesses(businesses) {
 
-    // Finder table body
     const tableBody = document.getElementById("businessTableBody");
 
-    // Finder besked element
-    const messageElement = document.getElementById("businessListMessage");
-
-    // Rydder tabellen før den fyldes igen
     tableBody.innerHTML = "";
 
-    // Hvis der ikke findes virksomheder
     if (businesses.length === 0) {
-        messageElement.textContent = "Der er ingen virksomheder";
+        showBusinessListMessage("Der er ingen virksomheder");
         return;
     }
 
-    // Fjerner loading besked
-    messageElement.textContent = "";
+    showBusinessListMessage("");
 
-    // Gennemgår alle virksomheder
     businesses.forEach(business => {
 
-        // Opretter en ny tabelrække
         const row = document.createElement("tr");
 
-        // Indsætter virksomhedsdata i rækken
         row.innerHTML = `
             <td>${business.companyName}</td>
             <td>${business.contactPerson}</td>
             <td>${business.phoneNumber}</td>
             <td>${business.address}</td>
             <td>
-                <button onclick='showEditBusinessForm(${JSON.stringify(business)})'>
+                <button class="edit-business-btn">
                     Rediger
                 </button>
-                <button onclick="confirmDeleteBusiness(${business.id})">
-                 Slet
-                 </button>
+
+                <button class="delete-business-btn">
+                    Slet
+                </button>
             </td>
         `;
 
-        // Tilføjer rækken til tabellen
+        row
+            .querySelector(".edit-business-btn")
+            .addEventListener("click", function () {
+                showEditBusinessForm(business);
+            });
+
+        row
+            .querySelector(".delete-business-btn")
+            .addEventListener("click", function () {
+                confirmDeleteBusiness(business.id);
+            });
+
         tableBody.appendChild(row);
     });
 }
@@ -133,7 +152,6 @@ function displayBusinesses(businesses) {
 // Viser formular til redigering af virksomhed
 function showEditBusinessForm(business) {
 
-    // Indsætter redigeringsformular med eksisterende virksomhedsdata
     document.getElementById("editBusinessContainer").innerHTML = `
 
         <h2>Rediger virksomhed</h2>
@@ -172,29 +190,29 @@ function showEditBusinessForm(business) {
                 Gem ændringer
             </button>
 
-            <button type="button" onclick="cancelEditBusiness()">
+            <button type="button" id="cancelEditBusinessBtn">
                 Annuller
             </button>
+
         </form>
     `;
 
-    // Tilføjer submit event til formularen
     document
         .getElementById("editBusinessForm")
         .addEventListener("submit", function (event) {
-
-            // Sender event og business id videre
             handleUpdateBusinessSubmit(event, business.id);
         });
+
+    document
+        .getElementById("cancelEditBusinessBtn")
+        .addEventListener("click", cancelEditBusiness);
 }
 
 // Håndterer submit af redigeringsformular
 function handleUpdateBusinessSubmit(event, businessId) {
 
-    // Stopper siden fra at reloade
     event.preventDefault();
 
-    // Bygger objekt med opdaterede virksomhedsdata
     const updatedBusiness = {
         companyName: document.getElementById("editCompanyName").value,
         contactPerson: document.getElementById("editContactPerson").value,
@@ -202,21 +220,17 @@ function handleUpdateBusinessSubmit(event, businessId) {
         address: document.getElementById("editAddress").value
     };
 
-    // Validerer at alle felter er udfyldt
     if (!validateUpdatedBusiness(updatedBusiness)) {
-        document.getElementById("businessListMessage").textContent =
-            "Alle felter skal udfyldes";
+        showBusinessListMessage("Alle felter skal udfyldes");
         return;
     }
 
-    // Sender opdaterede data til backend
     updateBusiness(businessId, updatedBusiness);
 }
 
 // Validerer redigeret virksomhedsdata
 function validateUpdatedBusiness(business) {
 
-    // Returnerer true hvis alle felter er udfyldt
     return business.companyName.trim() !== ""
         && business.contactPerson.trim() !== ""
         && business.phoneNumber.trim() !== ""
@@ -225,116 +239,102 @@ function validateUpdatedBusiness(business) {
 
 // Sender opdateret virksomhed til backend
 function updateBusiness(businessId, updatedBusiness) {
-    const token = localStorage.getItem('jwt');
-    // Sender PUT request til backend
+
+    const token = getToken();
+
     fetch(BASE_URL + "/admin/businesses/" + businessId, {
         method: "PUT",
-
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `${token}`
+            "Authorization": token
         },
-
-        credentials: "include",
-
         body: JSON.stringify(updatedBusiness)
     })
         .then(res => {
 
-            // Hvis request fejler, læses fejlbesked fra backend
             if (!res.ok) {
                 return res.text().then(errorMessage => {
                     throw new Error(errorMessage);
                 });
             }
 
-            // Konverterer response til JSON
             return res.json();
         })
         .then(() => {
 
-            // Viser bekræftelse til admin
-            document.getElementById("businessListMessage").textContent =
-                "Virksomhed opdateret";
+            showBusinessListMessage("Virksomhed opdateret");
 
-            // Fjerner redigeringsformularen
             document.getElementById("editBusinessContainer").innerHTML = "";
 
-            // Henter listen igen så opdaterede oplysninger vises
             loadAllBusinesses();
         })
         .catch(error => {
 
-            // Logger fejl i console
             console.log(error);
 
-            // Viser fejlbesked på siden
-            document.getElementById("businessListMessage").textContent =
-                "Fejl: " + error.message;
+            showBusinessListMessage("Fejl: " + error.message);
         });
 }
 
 // Annullerer redigering
 function cancelEditBusiness() {
 
-    // Fjerner redigeringsformularen
     document.getElementById("editBusinessContainer").innerHTML = "";
 }
 
 // Viser bekræftelsesdialog før sletning
 function confirmDeleteBusiness(businessId) {
 
-    // Spørger admin om virksomheden skal slettes
     const confirmed = confirm("Er du sikker på, at du vil slette virksomheden?");
 
-    // Stopper funktionen hvis admin trykker annuller
     if (!confirmed) {
         return;
     }
 
-    // Kalder delete funktionen hvis admin bekræfter
     deleteBusiness(businessId);
 }
 
 // Sletter virksomhed fra backend
 function deleteBusiness(businessId) {
-    const token = localStorage.getItem('jwt');
-    // Sender DELETE request til backend
+
+    const token = getToken();
+
     fetch(BASE_URL + "/admin/businesses/" + businessId, {
         method: "DELETE",
-        headers: { "Authorization": `${token}` }
+        headers: {
+            "Authorization": token
+        }
     })
         .then(res => {
 
-            // Hvis request fejler, læses fejlbesked fra backend
             if (!res.ok) {
                 return res.text().then(errorMessage => {
                     throw new Error(errorMessage);
                 });
             }
 
-            // Returnerer tekst response fra backend
             return res.text();
         })
         .then(() => {
 
-            // Viser bekræftelse til admin
-            document.getElementById("businessListMessage").textContent =
-                "Virksomhed slettet";
+            showBusinessListMessage("Virksomhed slettet");
 
-            // Fjerner eventuel redigeringsformular
             document.getElementById("editBusinessContainer").innerHTML = "";
 
-            // Henter listen igen så virksomheden fjernes fra visningen
             loadAllBusinesses();
         })
         .catch(error => {
 
-            // Logger fejl i console
             console.log(error);
 
-            // Viser fejlbesked på siden
-            document.getElementById("businessListMessage").textContent =
-                "Fejl: " + error.message;
+            showBusinessListMessage("Fejl: " + error.message);
         });
+}
+
+// Viser besked til admin
+function showBusinessListMessage(message) {
+
+    document
+        .getElementById("businessListMessage")
+        .textContent = message;
 }
