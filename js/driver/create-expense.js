@@ -1,4 +1,9 @@
 import { BASE_URL } from '../../config.js';
+
+export function initDriverExpenses() {
+    renderDriverExpensePage();
+}
+
 // Renderer siden til registrering af udgifter
 function renderDriverExpensePage() {
 

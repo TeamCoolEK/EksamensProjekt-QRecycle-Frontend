@@ -1,4 +1,5 @@
 import { BASE_URL } from '../../config.js';
+import { authFetch } from '../../utils.js'
 
 export function initBusinessDashboard() {
     renderBusinessPickupPage()
