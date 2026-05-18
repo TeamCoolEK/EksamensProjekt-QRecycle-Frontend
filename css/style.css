@@ -23,6 +23,96 @@ body {
     min-height: 100vh;
 }
 
+/* Pop-up til antal poser */
+#bagModal {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: auto;
+}
+/* Knappen ved siden af virksomhedsnavnet */
+.stop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.pickup-btn {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: 8px;
+}
+
+.pickup-btn:hover {
+    background-color: #1b5e20;
+}
+
+/* Succes emoji animation */
+.success-emoji {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8rem;
+    z-index: 2000;
+    pointer-events: none;
+    animation: emojiPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes emojiPop {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.success-emoji.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Forbedret Modal styling */
+#bagModal {
+    display: none; /* Styrkes af JS display: flex/none */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
 h1 {
     color: #2c3e50;
     text-align: center;
@@ -347,211 +437,256 @@ button:disabled {
 @media (min-width: 1200px) {
     #app {
         max-width: 800px;
-/* Navbar */
-.navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    background: rgb(30, 41, 59);
-    color: white;
-}
+        /* Navbar */
 
-.nav-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-}
+        .nav-logo {
+            height: 40px;
+        }
 
-.nav-logo {
-    height: 40px;
-}
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgb(30, 41, 59);
+            color: white;
+        }
 
-.menu-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
+        .nav-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
 
-/* Layout */
-.layout {
-    display: flex;
-    height: calc(100vh - 56px);
-}
+        .nav-logo {
+            height: 40px;
+        }
 
-/* Sidebar — skjult som standard */
-.sidebar {
-    position: fixed;
-    left: -300px;          /* gemt ude til venstre */
-    top: 56px;
-    width: 280px;
-    height: calc(100vh - 56px);
-    background: #f5f5f5;
-    padding: 1rem;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    z-index: 100;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-    transition: left 0.3s ease;  /* glidende animation */
-}
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
 
-/* Sidebar synlig når open klassen tilføjes */
-.sidebar.open {
-    left: 0;
-}
+        /* Layout */
 
-/* Stop items */
-.stop-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 0.75rem;
-    cursor: pointer;
-}
+        .layout {
+            display: flex;
+            height: calc(100vh - 56px);
+        }
 
-.stop-item:hover {
-    border-color: #2e7d32;
-}
+        /* Sidebar — skjult som standard */
 
-.stop-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-}
+        .sidebar {
+            position: fixed;
+            left: -400px; /* gemt ude til venstre */
+            top: 56px;
+            width: 280px;
+            height: calc(100vh - 56px);
+            background: #f5f5f5;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+            transition: left 0.3s ease; /* glidende animation */
+        }
 
-.stop-info small {
-    color: #888;
-    font-size: 0.8rem;
-}
+        /* Sidebar synlig når open klassen tilføjes */
 
-.remove-btn {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #999;
-    cursor: pointer;
-    padding: 0 0.25rem;
-}
+        .sidebar.open {
+            left: 0;
+        }
 
-.remove-btn:hover {
-    color: #c00;
-}
+        /* Stop items */
 
-/* Tilføj adresse */
-.add-address {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
+        .stop-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 0.75rem;
+            cursor: pointer;
+        }
 
-.add-address p {
-    font-size: 0.9rem;
-    color: #555;
-}
+        .stop-item:hover {
+            border-color: #2e7d32;
+        }
 
-.add-address input {
-    padding: 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
+        .stop-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
 
-.add-address button {
-    padding: 0.6rem;
-    background: #2e7d32;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
+        .stop-info small {
+            color: #888;
+            font-size: 0.8rem;
+        }
 
-/* Omkostning knap */
-.expense-btn {
-    margin-top: auto;
-    padding: 0.75rem;
-    background: #555;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-}
+        .remove-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #999;
+            cursor: pointer;
+            padding: 0 0.25rem;
+        }
 
-.expense-btn:hover {
-    background: #333;
-}
+        .remove-btn:hover {
+            color: #c00;
+        }
 
-/* Kort */
-#map {
-    flex: 1;
-    height: 100%;
-}
+        /* Tilføj adresse */
 
-/* Mobil */
-@media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        left: -280px;
-        top: 56px;
-        height: calc(100vh - 56px);
-        z-index: 100;
-        transition: left 0.3s ease;
-        box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+        .add-address {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .add-address p {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .add-address input {
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .add-address button {
+            padding: 0.6rem;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Omkostning knap */
+
+        .expense-btn {
+            margin-top: auto;
+            padding: 0.75rem;
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .expense-btn:hover {
+            background: #333;
+        }
+
+        /* Kort */
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        /* Mobil */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 56px;
+                height: calc(100vh - 56px);
+                z-index: 100;
+                transition: left 0.3s ease;
+                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+        }
+        /* Login */
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 56px);
+            background: #f5f5f5;
+        }
+
+        .login-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .login-card .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .login-card .form-group label {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .login-card .form-group input {
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .login-card .form-group input:focus {
+            outline: none;
+            border-color: #2e7d32;
+        }
+
+        .login-btn {
+            padding: 0.75rem;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .login-btn:hover {
+            background: #1b5e20;
+        }
+
+        .login-btn:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .login-error {
+            background: #fdecea;
+            color: #c0392b;
+            padding: 0.6rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+        }
     }
 
-    .sidebar.open {
-        left: 0;
-    }
-}
-/* Login */
-.login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: calc(100vh - 56px);
-    background: #f5f5f5;
-}
 
-.login-card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 2rem;
-    width: 100%;
-    max-width: 360px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.login-card .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.login-card .form-group label {
-    font-size: 0.9rem;
-    color: #555;
-}
-
-.login-card .form-group input {
-    padding: 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.login-card .form-group input:focus {
-    outline: none;
-    border-color: #2e7d32;
 }
 
 .login-btn {

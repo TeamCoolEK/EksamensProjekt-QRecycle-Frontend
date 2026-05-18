@@ -27,11 +27,12 @@ function renderDriverMap() {
             <!-- Sidebar -->
             <div class="sidebar" id="sidebar">
 
-                <!-- Adresser fra backend -->
+                <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend.
+                -->
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
-                <!-- Opdater listen -->
+                <!-- Opdater listen med nyt data ved at kalde fetchAndBuildRoute() funktionen -->
                 <button onclick="fetchAndBuildRoute()">🔄 Opdater listen</button>
 
                 <!-- Tilføj ny adresse manuelt -->
@@ -74,6 +75,8 @@ function renderDriverMap() {
 
 function loadGoogleMapsScript() {
     if (document.getElementById('gmaps-script')) {
+        // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
+        //Ellers loades scriptet igen.
         initMap()
         return
     }
@@ -86,27 +89,39 @@ function loadGoogleMapsScript() {
     document.body.appendChild(script)
 }
 
-
+//QE-169 (Opdater ved indlæsning). Implementeret via initMap,
+// som kaldes automatisk, når kortet initialiseres ved sidens indlæsning.
 async function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 55.6761, lng: 12.5683 },
+        // Centrer kortet på København
         zoom: 11
+        // Zoom niveau — højere tal = tættere på
+
     })
 
     directionsService = new google.maps.DirectionsService()
+    // Service til at beregne ruter mellem adresser
     directionsRenderer = new google.maps.DirectionsRenderer()
+    // Renderer til at tegne ruten på kortet
     directionsRenderer.setMap(map)
+    // Kobl rendereren til vores kort så ruten tegnes der
 
     await fetchAndBuildRoute()
+    // Hent afhentninger fra backend og byg ruten
+
 }
 
 
 async function fetchAndBuildRoute() {
     const stopList = document.getElementById('stopList')
+    // Hent sidebar elementet hvor stop-listen vises
 
-    // Hent aktive afhentninger fra Java backend
+    // Sender GET request til Java backend
+    // Henter alle afhentninger med status KLAR
     const response = await fetch(`${BASE_URL}/driver/collections/active`)
 
+    //fejlbesked hvis backend ikke giver svar, eller hvis status er ikke OK 200.
     if (!response.ok) {
         stopList.innerHTML = '<p>Kunne ikke hente afhentninger.</p>'
         return
@@ -116,6 +131,7 @@ async function fetchAndBuildRoute() {
     collections = data.filter(c => c.address)
 
     if (collections.length === 0) {
+        // Hvis ingen aktive afhentninger, altså at listen er tom, vises denne besked
         stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>'
         return
     }
@@ -124,14 +140,19 @@ async function fetchAndBuildRoute() {
     calculateRoute()
 }
 
-
+//Listen viser virksomhedens navn og adresse
 function renderStopList() {
     const stopList = document.getElementById('stopList')
 
     stopList.innerHTML = collections.map(c => `
         <div class="stop-item" id="stop-${c.id}">
+        <!--Opret en div per afhentning med unikt id
+        id bruges til at fjerne stopet fra DOM når det er afhentet -->
             <div class="stop-info" onclick="onStopChecked(${c.id})">
+                <div class="stop-header">
                 <strong>${c.businessName}</strong>
+                <button class="pickup-btn" onclick="onStopChecked(${c.id})">Afhent</button>
+               </div>
                 <small>${c.address}</small>
             </div>
             <button class="remove-btn" onclick="removeStop(${c.id})">×</button>
@@ -139,9 +160,8 @@ function renderStopList() {
     `).join('')
 }
 
-
+//Virksomheder vises som markører på kortet. Der placeres markører via Google Maps Geocoder.
 function calculateRoute() {
-    // Brug businessAddress i stedet for c.Business.address
     const addresses = collections.map(c => c.address)
 
     if (addresses.length === 0) {
@@ -199,7 +219,7 @@ function addManualStop() {
 
     input.value = ''
     renderStopList()
-    calculateRoute()
+    calculateRoute() //Genkaldes efter tilføjelse af nyt stop
 }
 
 
@@ -230,6 +250,7 @@ async function confirmPickup() {
     const collectionId = modal.dataset.collectionId
     const bagCount = parseInt(document.getElementById('bagCount').value)
 
+    //Systemet accepterer 0 og op som gyldigt antal poser
     if (isNaN(bagCount) || bagCount < 0) {
         alert('Indtast venligst antal poser.')
         return
@@ -252,6 +273,7 @@ async function confirmPickup() {
     collections = collections.filter(c => c.id.toString() !== collectionId.toString())
     document.getElementById(`stop-${collectionId}`)?.remove()
     closeModal()
+    showSuccessEmoji()
 
     if (collections.length === 0) {
         document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
@@ -259,6 +281,20 @@ async function confirmPickup() {
     } else {
         calculateRoute()
     }
+}
+
+//Visningen og animationen af tommel-op emojien efter antal poser afhentet
+function showSuccessEmoji() {
+    const emoji = document.createElement('div');
+    emoji.className = 'success-emoji';
+    emoji.innerHTML = '👍';
+    document.body.appendChild(emoji);
+
+    // Fjern emojien igen efter 2 sekunder (inkl. fade-out)
+    setTimeout(() => {
+        emoji.classList.add('fade-out');
+        setTimeout(() => emoji.remove(), 500);
+    }, 1500);
 }
 
 
