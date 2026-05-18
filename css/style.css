@@ -709,7 +709,7 @@ button:disabled {
     border-radius: 4px;
     font-size: 0.9rem;
     display: none;
-}}}
+}
 
 /*QE-111: Annuller afhentning knap*/
 .btn.cancel {

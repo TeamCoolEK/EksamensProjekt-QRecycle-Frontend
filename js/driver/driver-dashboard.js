@@ -1,6 +1,6 @@
 import { BASE_URL } from '../../config.js';
 
-import { MAPS_API_KEY } from "../../config.secrets";
+import { MAPS_API_KEY } from "../../config.secrets.js";
 
 export function initDriverDashboard() {
     renderDriverMap();
@@ -68,6 +68,14 @@ function renderDriverMap() {
             </div>
         </div>
     `
+    window.initMap = initMap
+    window.toggleMenu = toggleMenu
+    window.fetchAndBuildRoute = fetchAndBuildRoute
+    window.addManualStop = addManualStop
+    window.removeStop = removeStop
+    window.onStopChecked = onStopChecked
+    window.confirmPickup = confirmPickup
+    window.closeModal = closeModal
 
     loadGoogleMapsScript()
 }
@@ -119,7 +127,9 @@ async function fetchAndBuildRoute() {
 
     // Sender GET request til Java backend
     // Henter alle afhentninger med status KLAR
-    const response = await fetch(`${BASE_URL}/driver/collections/active`)
+    const response = await fetch(`${BASE_URL}/driver/collections/active`, {
+        headers: { 'Authorization': localStorage.getItem('jwt') }
+    })
 
     //fejlbesked hvis backend ikke giver svar, eller hvis status er ikke OK 200.
     if (!response.ok) {
@@ -211,6 +221,7 @@ function addManualStop() {
     if (!address) return
 
     // Tilføj som et midlertidigt stop
+    const tempId = `manual-${tempIdCounter++}`
     collections.push({
         id: tempId,
         businessName: address,
@@ -260,7 +271,10 @@ async function confirmPickup() {
     if (!collectionId.toString().startsWith('manual')) {
         const response = await fetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('jwt')
+            },
             body: JSON.stringify({ driverBags: bagCount })
         })
 
