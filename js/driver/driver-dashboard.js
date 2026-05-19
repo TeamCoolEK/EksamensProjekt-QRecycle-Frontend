@@ -1,6 +1,6 @@
 import { BASE_URL } from '../../config.js';
 import { MAPS_API_KEY } from "../../config.secrets.js";
-import { authFetch } from '../../utils.js';
+import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 
 export function initDriverDashboard() {
     renderDriverMap();
