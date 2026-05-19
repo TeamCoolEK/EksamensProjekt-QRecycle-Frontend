@@ -43,7 +43,7 @@ function renderBusinessPickupPage() {
         <button
         id="cancelPickupBtn"
         class="btn-cancel hidden"
-        onclick="handleCancelPickup()">
+        onclick="handleCancelPickp()">
         Annuller afhentning
 </button>
         
@@ -58,6 +58,14 @@ function renderBusinessPickupPage() {
 
 }
 
+//Henter CollectionsID
+async function getMyCollectionId() {
+    const res = await authFetch(BASE_URL + "/business/me/collection");
+    if (!res.ok) throw new Error("Kunne ikke hente collection");
+    const collection = await res.json();
+    return collection.id;
+}
+
 //Opretter events til pickup formularen//
 
 function setupPickupEvents() {
@@ -66,10 +74,10 @@ function setupPickupEvents() {
         .getElementById("pickupForm")
         .addEventListener("submit", handlePickupSubmit);
 
-    //Validering af input felt//
-    document
-        .getElementById("bagsInput")
-        .addEventListener("input", validateBagsInput);
+    // //Validering af input felt//
+    // document
+    //     .getElementById("bagsInput")
+    //     .addEventListener("input", validateBagsInput);
 
     //QE-111: Event listener til annuller knap//
     const cancelBtn = document.getElementById("cancelPickupBtn");
@@ -78,21 +86,24 @@ function setupPickupEvents() {
     }
 }
 
+//Bliver sat i "bagsInput" i html
 //Sikrer at input altid er mindst 1//
-function validateBagsInput() {
-
-    const input = document.getElementById("bagsInput");
-
-    if (input.value < 1) {
-        input.value = 1;
-    }
-}
+// function validateBagsInput() {
+//
+//     const input = document.getElementById("bagsInput");
+//
+//     if (input.value < 1) {
+//         input.value = 1;
+//     }
+// }
 
 //Hent og vis nuværende status ved page load//
-function loadCurrentStatus() {
-
+async function loadCurrentStatus() {
     //Hent collectionId fra logged in bruger// OBS Slet ?//
-    const collectionId = 1;
+    //const collectionId = 1;
+    const token = localStorage.getItem('jwt')
+    //henter collections id fra backend
+    const collectionId = await getMyCollectionId();
 
     authFetch(BASE_URL + "/business/collection/" + collectionId,{
         method: "GET"
@@ -131,7 +142,7 @@ async function handlePickupSubmit(event) {
     //Stopper siden fra at reloade//
     event.preventDefault();
     //Bygger pickup objekt fra inputfelterne//
-    const pickupData = buildPickupObject();
+    const pickupData = await buildPickupObject();
     //Validerer input//
     if(!validatePickup(pickupData)){
         showPickupMessage("Antal poser skal være mindst 1");
@@ -143,13 +154,14 @@ async function handlePickupSubmit(event) {
 }
 
 //Bygger pickup objekt fra HTML formularen, der skal sendes som JSON til backend API'et//
-function buildPickupObject() {
+async function buildPickupObject() {
     //Return statement - returnerer objekt//
+    const collectionId = await getMyCollectionId();
     return {
         //mangler? hente collectionId fra logged in bruger//
         //Hardcoded til 1, til test, indil login er implementeret - SKAL SLETTES HER//
         //HUSK at slette//
-        collectionId: 1,
+        collectionId: collectionId,
 
         businessBags: Number(document.getElementById("bagsInput").value)
     };
@@ -159,11 +171,11 @@ function buildPickupObject() {
 //Validerer pickup data//
 function validatePickup(pickupData){
     return pickupData.businessBags >= 1;
-
 }
 
 //Sender pickup til backend API//
 function savePickup(pickupData) {
+    //auth header??????
     authFetch(BASE_URL + "/business/collection/ready", {
         method: "POST",
 
@@ -297,11 +309,11 @@ function formatDate(dateString) {
             cancelBtn.disabled = true;
             cancelBtn.textContent = 'Annullerer...';
 
-            const collectionsId = 1;
+            const collectionId = await getMyCollectionId();
 
             //QE-113: Kald backend API//
             const response = await authFetch(
-                BASE_URL + "/business/collection/" + collectionsId + "/cancel",
+                BASE_URL + "/business/collection/" + collectionId + "/cancel",
                 {
                     method: "POST",
                     headers: {
@@ -329,6 +341,8 @@ function formatDate(dateString) {
             setTimeout(() => {
                 document.getElementById("pickupMessage").textContent = "";
             }, 5000);
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = originalText;
 
         } catch (error) {
             console.error('Fejl ved annullering:', error);
