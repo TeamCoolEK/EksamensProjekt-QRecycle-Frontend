@@ -16,6 +16,7 @@ const routes = {
     '#/driver/createExpenses':{ roles: ['ADMIN', 'DRIVER'],           page: 'createExpenses'},
     //business routes
     '#/business/dashboard':   { roles: ['BUSINESS'],                  page: 'businessDashboard' },
+    '#/admin/collections':    { roles: ['ADMIN'],                     page: 'adminCollections' },
 };
 
 // Default landing page per role
@@ -119,6 +120,10 @@ async function loadPage(page) {
         case 'businessDashboard':
             const { initBusinessDashboard } = await import('./business/business-dashboard.js');
             initBusinessDashboard(content);
+            break;
+        case 'adminCollections':
+            const { initAdminCollections } = await import('./admin/admin-collections.js');
+            initAdminCollections(content);
             break;
         case 'unauthorized':
             content.innerHTML = '<h1>Access Denied</h1><p>You do not have permission to view this page.</p>';
