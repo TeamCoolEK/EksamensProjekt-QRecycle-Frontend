@@ -43,7 +43,7 @@ function renderBusinessPickupPage() {
         <button
         id="cancelPickupBtn"
         class="btn-cancel hidden"
-        onclick="handleCancelPickp()">
+        onclick="handleCancelPickup()">
         Annuller afhentning
 </button>
         
