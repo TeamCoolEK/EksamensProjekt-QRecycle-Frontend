@@ -1,5 +1,6 @@
 // imports
 import { BASE_URL } from '../../config.js';
+import { authFetch } from "../../utils";
 
 export function initAdminDashboard(content) {
     renderAdminDashboardPage(content);
@@ -57,10 +58,8 @@ function renderAdminDashboardPage(content) {
 
 // Henter dashboard data fra backend
 function loadDashboardData() {
-    const token = localStorage.getItem('jwt')
-    fetch(BASE_URL + "/admin/dashboard", {
-        method: "GET",
-        headers: { 'Authorization': `${token}` }
+    authFetch(BASE_URL + "/admin/dashboard", { //henter auth fra authFetch utils.js
+        method: "GET"
     })
 
         .then(res => {
