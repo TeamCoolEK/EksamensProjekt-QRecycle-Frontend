@@ -1,6 +1,6 @@
 // imports
 import { BASE_URL } from '../../config.js';
-import { authFetch } from "../../utils";
+import { authFetch } from "../../utils.js";
 
 export function initAdminDashboard() {
     renderAdminDashboardPage();
@@ -45,7 +45,7 @@ function renderAdminDashboardPage() {
                 Udgifter
             </button>
             
-            <button onclick="alert('Coming soon!')">
+            <button onclick="window.location.hash='#/driver/dashboard'">
                 Rute
             </button>
 
