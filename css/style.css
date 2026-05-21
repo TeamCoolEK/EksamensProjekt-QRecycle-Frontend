@@ -1,0 +1,924 @@
+/*Basic general styling*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* Pop-up til antal poser */
+#bagModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Knappen ved siden af virksomhedsnavnet */
+.stop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.pickup-btn {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: 8px;
+}
+
+.pickup-btn:hover {
+    background-color: #1b5e20;
+}
+
+/* Succes emoji animation */
+.success-emoji {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8rem;
+    z-index: 2000;
+    pointer-events: none;
+    animation: emojiPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes emojiPop {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.success-emoji.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Modal styling */
+.modal-box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin: 30px 0;
+    font-size: 28px;
+}
+
+h2 {
+    color: #34495e;
+    margin: 20px 0 15px;
+    font-size: 22px;
+}
+
+h3 {
+    color: #2c3e50;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/*Pant-status container*/
+.status-container {
+    margin-bottom: 30px;
+}
+
+.status-card {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #95a5a6;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.status-card h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.status-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.status-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.status-details p {
+    margin: 8px 0;
+    color: #555;
+    font-size: 16px;
+}
+
+/* Pant status farver - baseret på enum */
+.status-not-ready {
+    border-left-color: #e74c3c;
+}
+
+.status-not-ready .status-value {
+    color: #e74c3c;
+}
+
+.status-ready {
+    border-left-color: #27ae60;
+}
+
+.status-ready .status-value {
+    color: #27ae60;
+}
+
+.status-picked-up {
+    border-left-color: #95a5a6;
+}
+
+.status-picked-up .status-value {
+    color: #95a5a6;
+}
+
+/* Pant status error visning */
+.status-error {
+    background: #ffebee;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 5px solid #e74c3c;
+    color: #c62828;
+}
+
+.error-detail {
+    font-size: 14px;
+    margin-top: 10px;
+    opacity: 0.8;
+}
+
+/*Form styling*/
+form {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 16px;
+}
+
+/* Input felter */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="file"],
+select {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+input[type="number"] {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/*Knap styling*/
+button,
+button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+button:active {
+    background-color: #3d8b40;
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/*Beskeder*/
+#pickupMessage,
+#expenseMessage,
+#userMessage {
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    min-height: 20px;
+    animation: slideIn 0.3s ease-out;
+}
+
+/*Lister*/
+#userList {
+    list-style: none;
+    padding: 0;
+}
+
+#userList li {
+    background: white;
+    padding: 14px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+}
+
+/*Billede preview*/
+#previewImage {
+    display: block;
+    margin: 15px auto;
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/*Animations*/
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Navbar */
+.nav-logo {
+    height: 40px;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: rgb(30, 41, 59);
+    color: white;
+}
+
+.nav-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: auto;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Layout */
+.layout {
+    display: flex;
+    height: calc(100vh - 56px);
+}
+
+/* Sidebar */
+.sidebar {
+    position: absolute;
+    left: -320px;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background: #f5f5f5;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+    transition: left 0.3s ease;
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+/* Stop items */
+.stop-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.75rem;
+    cursor: pointer;
+}
+
+.stop-item:hover {
+    border-color: #2e7d32;
+}
+
+.stop-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.stop-info small {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #999;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    width: auto;
+}
+
+.remove-btn:hover {
+    color: #c00;
+}
+
+/* Tilføj adresse */
+.add-address {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.add-address p {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.add-address input {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.add-address button {
+    padding: 0.6rem;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+/* Omkostning knap */
+.expense-btn {
+    margin-top: auto;
+    padding: 0.75rem;
+    background: #555;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.expense-btn:hover {
+    background: #333;
+}
+
+/* Kort */
+#map {
+    flex: 1;
+    height: 100%;
+}
+
+/* Login */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 56px);
+    background: #f5f5f5;
+}
+
+.login-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 2rem;
+    width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.login-card .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.login-card .form-group label {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.login-card .form-group input {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.login-card .form-group input:focus {
+    outline: none;
+    border-color: #2e7d32;
+}
+
+.login-btn {
+    padding: 0.75rem;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: normal;
+    width: 100%;
+}
+
+.login-btn:hover {
+    background: #1b5e20;
+}
+
+.login-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+.login-error {
+    background: #fdecea;
+    color: #c0392b;
+    padding: 0.6rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: none;
+}
+
+/*QE-111: Annuller afhentning knap*/
+.btn.cancel {
+    width: 100%;
+    padding: 14px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    margin-top: 20px;
+}
+
+.btn-cancel:hover {
+    background-color: #c0392b;
+}
+
+.btn-cancel:active {
+    background-color: #a93226;
+    transform: scale(0.98);
+}
+
+.btn-cancel:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Admin statistics / QRecycle inspired styling */
+
+:root {
+    --qr-green: #2e7d32;
+    --qr-green-dark: #1b5e20;
+    --qr-green-light: #e8f5e9;
+    --qr-dark: #1e293b;
+    --qr-text: #1f2937;
+    --qr-muted: #6b7280;
+    --qr-border: #e5e7eb;
+    --qr-bg: #f7f8f6;
+    --qr-white: #ffffff;
+}
+
+/* Giver admin-sider mere hjemmeside/card look */
+#app > h1,
+#app > h2,
+#statisticsMessage,
+#statisticsSummary,
+#app > table,
+#app > .business-actions {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Overskrift */
+#app > h1 {
+    color: var(--qr-dark);
+    font-size: 34px;
+    font-weight: 800;
+    margin-top: 40px;
+    margin-bottom: 8px;
+}
+
+#app > h1::after {
+    content: "";
+    display: block;
+    width: 90px;
+    height: 4px;
+    background: var(--qr-green);
+    border-radius: 999px;
+    margin: 14px auto 0;
+}
+
+#app > h2 {
+    color: var(--qr-text);
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 25px;
+}
+
+/* Admin action/filter område */
+.business-actions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 22px;
+    margin-bottom: 22px;
+    padding: 18px;
+    background: var(--qr-white);
+    border: 1px solid var(--qr-border);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* Knapper */
+.business-actions button,
+#backToDashboardBtn {
+    width: auto;
+    min-width: 180px;
+    background: var(--qr-green);
+    border-radius: 999px;
+    padding: 13px 22px;
+    box-shadow: 0 8px 18px rgba(46, 125, 50, 0.25);
+}
+
+.business-actions button:hover,
+#backToDashboardBtn:hover {
+    background: var(--qr-green-dark);
+}
+
+/* Filters */
+.business-actions select,
+.business-actions input[type="text"],
+.business-actions input[type="date"] {
+    width: auto;
+    min-width: 210px;
+    margin-bottom: 0;
+    border-radius: 999px;
+    border: 1px solid var(--qr-border);
+    background: #fbfbfb;
+    color: var(--qr-text);
+}
+
+/* Statistik besked */
+#statisticsMessage,
+#collectionListMessage,
+#businessListMessage {
+    max-width: 1200px;
+    background: var(--qr-green-light);
+    color: var(--qr-green-dark);
+    border-left: 5px solid var(--qr-green);
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+/* Summary card */
+#statisticsSummary {
+    margin-top: 20px;
+    margin-bottom: 25px;
+}
+
+#statisticsSummary .status-card {
+    border-left: none;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #ffffff 0%, #eef8ef 100%);
+    border: 1px solid #d8eadb;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.10);
+}
+
+#statisticsSummary h3 {
+    color: var(--qr-green-dark);
+    font-size: 22px;
+}
+
+#statisticsSummary p {
+    font-size: 17px;
+    color: var(--qr-text);
+    margin: 8px 0;
+}
+
+#statisticsSummary strong {
+    color: var(--qr-green-dark);
+    font-size: 20px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    max-width: 1200px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    background: var(--qr-white);
+    border-radius: 20px;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.10);
+    border: 1px solid var(--qr-border);
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+thead {
+    background: var(--qr-dark);
+    color: white;
+}
+
+th {
+    padding: 16px 18px;
+    text-align: left;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--qr-border);
+    color: var(--qr-text);
+    font-size: 15px;
+}
+
+tbody tr:hover {
+    background: var(--qr-green-light);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Gør tal mere tydelige */
+td:nth-child(4),
+td:nth-child(5) {
+    font-weight: 800;
+    color: var(--qr-green-dark);
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    #app > h1 {
+        font-size: 26px;
+        padding: 0 14px;
+    }
+
+    .business-actions {
+        margin-left: 12px;
+        margin-right: 12px;
+        padding: 14px;
+    }
+
+    .business-actions select,
+    .business-actions input[type="text"],
+    .business-actions input[type="date"],
+    .business-actions button {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        margin-left: 12px;
+        margin-right: 12px;
+        width: calc(100% - 24px);
+    }
+
+    th,
+    td {
+        white-space: nowrap;
+    }
+
+    #statisticsSummary,
+    #statisticsMessage,
+    #collectionListMessage,
+    #businessListMessage {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+}
+
+/* Admin navbar */
+
+.admin-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e293b;
+    padding: 14px 20px;
+}
+
+.admin-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+}
+
+.admin-logo-btn {
+    height: 42px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.admin-logo-btn:hover {
+    transform: scale(1.05);
+}
+
+.logout-btn {
+    width: auto;
+    padding: 10px 18px;
+    background-color: #e74c3c;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Driver navbar actions */
+
+.driver-navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.driver-logo-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.driver-logo-btn:hover {
+    transform: scale(1.05);
+}
+
+.logout-btn {
+    width: auto;
+    padding: 10px 18px;
+    background-color: #e74c3c;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+.page-container {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+/* Business navbar */
+
+.business-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.business-navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.business-logo-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.business-logo-btn:hover {
+    transform: scale(1.05);
+}
