@@ -8,17 +8,47 @@ export function initBusinessDashboard() {
 //Renderer siden til markering af pant som klar//
 function renderBusinessPickupPage() {
     document.getElementById("app").innerHTML = `
-        
-        <h1>Markér pant klar til afhentning</h1>
-        
-        <div id="currentStatus" class="status-container">
-        <p>Henter status...</p>
+
+    <!-- Navbar -->
+    <nav class="navbar business-navbar">
+
+        <span class="nav-title">
+            Virksomhed
+        </span>
+
+        <div class="business-navbar-actions">
+
+            <img
+                src="img/logo.png"
+                class="nav-logo business-logo-btn"
+                id="businessLogoBtn"
+                alt="Q Genbrug"
+            >
+
+            <button
+                id="businessLogoutBtn"
+                class="logout-btn"
+            >
+                Log ud
+            </button>
+
         </div>
-        
+
+    </nav>
+
+    <div class="page-container">
+
+        <h1>Markér pant klar til afhentning</h1>
+
+        <div id="currentStatus" class="status-container">
+            <p>Henter status...</p>
+        </div>
+
         <form id="pickupForm">
-            
+
             <!-- QE-74: Input felt til antal poser -->
             <label for="bagsInput">Antal pant poser:</label>
+
             <input
                 id="bagsInput"
                 type="number"
@@ -26,28 +56,28 @@ function renderBusinessPickupPage() {
                 min="1"
                 placeholder="Indtast antal pant poser"
             >
-            
+
             <!-- QE-73: Knap til at markere klar -->
             <button type="submit">
                 Markér klar til afhentning
             </button>
-            
+
         </form>
-        
+
         <!-- QE-83: Besked til brugeren -->
         <p id="pickupMessage"></p>
-        
-     
-        
-        <!--QE-111: Annuller afhentning knap -->
+
+        <!-- QE-111: Annuller afhentning knap -->
         <button
-        id="cancelPickupBtn"
-        class="btn-cancel hidden"
-        Annuller afhentning
-</button>
-        
-        
-    `;
+            id="cancelPickupBtn"
+            class="btn-cancel hidden"
+            onclick="handleCancelPickup()"
+        >
+            Annuller afhentning
+        </button>
+
+    </div>
+`;
 
     //Starter event listeners//
     setupPickupEvents();
@@ -83,6 +113,14 @@ function setupPickupEvents() {
     if (cancelBtn) {
         cancelBtn.addEventListener("click",handleCancelPickup);
     }
+    document
+        .getElementById("businessLogoutBtn")
+        .addEventListener("click", function () {
+
+            localStorage.removeItem("jwt");
+
+            window.location.hash = "#/login";
+        });
 }
 
 //Bliver sat i "bagsInput" i html
