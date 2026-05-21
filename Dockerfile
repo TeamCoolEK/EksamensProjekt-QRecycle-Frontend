@@ -8,6 +8,13 @@ COPY config.production.js /usr/share/nginx/html/config.js
 COPY index.html /usr/share/nginx/html/
 COPY js/ /usr/share/nginx/html/js/
 COPY css/ /usr/share/nginx/html/css/
+
+# starter entrypoint.sh og tilføjer google api fra github secrets
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Exposer serveren til port 80 så man kan tilgå den
 # Vi åbner kun frontenden op til offentligheden (Reverse proxy)... port 8080 er reserveret til backend (privat)
 EXPOSE 80
+
+ENTRYPOINT ["/entrypoint.sh"]
