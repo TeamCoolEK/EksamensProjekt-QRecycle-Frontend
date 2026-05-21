@@ -1,4 +1,5 @@
 import { BASE_URL } from "../../config.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initBusinessList() {
     renderAdminBusinessListPage();
@@ -8,6 +9,9 @@ export function initBusinessList() {
 function renderAdminBusinessListPage() {
 
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Virksomhedsadministration")}
+
 
         <h1>Virksomhedsadministration</h1>
 
@@ -41,6 +45,7 @@ function renderAdminBusinessListPage() {
 
         <div id="editBusinessContainer"></div>
     `;
+    setupAdminNavbarEvents()
 
     setupPageEvents();
     loadAllBusinesses();

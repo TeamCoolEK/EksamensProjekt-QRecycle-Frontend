@@ -1,4 +1,5 @@
 import {BASE_URL} from "../../config.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminCollections(){
     renderAdminCollectionsPage();
@@ -7,6 +8,8 @@ export function initAdminCollections(){
 function renderAdminCollectionsPage(){
 
     document.getElementById("app").innerHTML = `
+    
+        ${renderAdminNavbar("Statestik")}
     
     <h1>Afhentningshistorik</h1>
     
@@ -35,6 +38,8 @@ function renderAdminCollectionsPage(){
 <tbody id="collectionTableBody"></tbody>
 </table>
     `;
+
+    setupAdminNavbarEvents()
 
     document.getElementById("backToDashboardBtn")
         .addEventListener("click", function (){

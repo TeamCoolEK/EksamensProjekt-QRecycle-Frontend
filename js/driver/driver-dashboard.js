@@ -22,11 +22,24 @@ function renderDriverMap() {
 
     app.innerHTML = `
     <!-- Navigation bar -->
-    <nav class="navbar" onclick="toggleMenu()">
-        <button class="menu-btn">☰</button>
-        <span class="nav-title">Dagens rute</span>
-        <img src="img/logo.png" class="nav-logo" alt="Q Genbrug">
-    </nav>
+<nav class="navbar">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+    <span class="nav-title">Dagens rute</span>
+
+    <div class="driver-navbar-actions">
+        <img
+            src="img/logo.png"
+            class="nav-logo driver-logo-btn"
+            id="driverLogoBtn"
+            alt="Q Genbrug"
+        >
+
+        <button id="driverLogoutBtn" class="logout-btn">
+            Log ud
+        </button>
+    </div>
+</nav>
 
     <div class="layout">
 
@@ -92,6 +105,8 @@ function renderDriverMap() {
     window.confirmPickup = confirmPickup
     window.closeModal = closeModal
     window.doneManualStop = doneManualStop
+
+    setupDriverNavbarEvents();
 
     loadGoogleMapsScript()
 }
@@ -381,5 +396,45 @@ function toggleMenu() {
     const overlay = document.getElementById('sidebarOverlay')
     const isOpen = sidebar.classList.toggle('open')
     overlay.classList.toggle('active', isOpen)
+}
+
+function setupDriverNavbarEvents() {
+
+    document
+        .getElementById("driverLogoutBtn")
+        .addEventListener("click", function () {
+
+            localStorage.removeItem("jwt");
+
+            window.location.hash = "#/login";
+        });
+
+    document
+        .getElementById("driverLogoBtn")
+        .addEventListener("click", async function () {
+
+            const user = await getCurrentUser();
+
+            if (user && user.role === "ADMIN") {
+                window.location.hash = "#/admin/dashboard";
+            }
+        });
+}
+
+async function getCurrentUser() {
+
+    try {
+        const response = await authFetch(`${BASE_URL}/auth/me`);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        return await response.json();
+
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
 }
 

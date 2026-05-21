@@ -1,6 +1,7 @@
 // imports
 import { BASE_URL } from '../../config.js';
 import { authFetch } from "../../utils.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminDashboard() {
     renderAdminDashboardPage();
@@ -11,6 +12,9 @@ function renderAdminDashboardPage() {
 
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Dashboard")}
+
 
         <h1>Admin dashboard</h1>
         <div>
@@ -33,7 +37,7 @@ function renderAdminDashboardPage() {
             </button>
 
             <!--indsættes som eventlistener under html!-->
-            <button id="statistik">
+            <button onclick="window.location.hash='#/admin/statistics'">
                 Statistik
             </button>
 
@@ -53,6 +57,8 @@ function renderAdminDashboardPage() {
 
         <p id="dashboardMessage"></p>
     `;
+
+    setupAdminNavbarEvents()
 
     // Henter data til dashboard
     loadDashboardData();
@@ -91,20 +97,6 @@ function loadDashboardData() {
             document.getElementById("bagsReadyForPickup").textContent = "Fejl";
             showDashboardMessage("Kunne ikke hente dashboard data");
         });
-}
-
-// Renderer midlertidig statistikside
-function renderStatisticPage() {
-
-    // Indsætter HTML i app containeren
-    document.getElementById("app").innerHTML = `
-
-        <h1>Statistik</h1>
-        <p>Statistikside kommer senere</p>
-        <button onclick="renderAdminDashboardPage()">
-            Tilbage til dashboard
-        </button>
-    `;
 }
 
 // Viser besked til brugeren

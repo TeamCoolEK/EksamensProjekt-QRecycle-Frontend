@@ -1,4 +1,5 @@
 import { BASE_URL } from "../../config.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initCreateUser() {
     renderAdminUserPage();
@@ -9,6 +10,8 @@ export function renderAdminUserPage() {
 
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Statestik")}
 
         <h1>Opret bruger</h1>
 
@@ -43,6 +46,8 @@ export function renderAdminUserPage() {
         <h2>Brugerliste</h2>
         <ul id="userList"></ul>
     `;
+
+    setupAdminNavbarEvents()
 
     // Starter event listeners
     setupUserEvents();
