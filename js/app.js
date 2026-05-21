@@ -17,7 +17,8 @@ const routes = {
     //business routes
     '#/business/dashboard':   { roles: ['BUSINESS'],                  page: 'businessDashboard' },
     '#/admin/collections':    { roles: ['ADMIN'],                     page: 'adminCollections' },
-    '#/admin/statistics':     {roles:  ['ADMIN'],                     page: 'adminStatistics'}
+    '#/admin/statistics':     { roles: ['ADMIN'],                     page: 'adminStatistics'},
+    '#/admin/getExpenses':    { roles: ['ADMIN'],                     page: 'adminExpenses' }
 };
 
 // Default landing page per role
