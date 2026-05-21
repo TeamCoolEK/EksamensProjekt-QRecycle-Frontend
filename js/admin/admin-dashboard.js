@@ -1,5 +1,6 @@
 // imports
 import { BASE_URL } from '../../config.js';
+import { authFetch } from "../../utils.js";
 import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminDashboard() {
@@ -48,7 +49,7 @@ function renderAdminDashboardPage() {
                 Udgifter
             </button>
             
-            <button onclick="alert('Coming soon!')">
+            <button onclick="window.location.hash='#/driver/dashboard'">
                 Rute
             </button>
 
@@ -66,10 +67,8 @@ function renderAdminDashboardPage() {
 
 // Henter dashboard data fra backend
 function loadDashboardData() {
-    const token = localStorage.getItem('jwt')
-    fetch(BASE_URL + "/admin/dashboard", {
-        method: "GET",
-        headers: { 'Authorization': `${token}` }
+    authFetch(BASE_URL + "/admin/dashboard", { //henter auth fra authFetch utils.js
+        method: "GET"
     })
 
         .then(res => {
