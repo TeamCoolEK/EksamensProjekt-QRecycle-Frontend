@@ -1,5 +1,4 @@
 import { BASE_URL } from '../../config.js';
-import { MAPS_API_KEY } from "../../config.secrets.js";
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 
 export function initDriverDashboard() {
@@ -112,17 +111,18 @@ function renderDriverMap() {
 }
 
 
-function loadGoogleMapsScript() {
+async function loadGoogleMapsScript() {
+    const { apiKey } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
-        initMap()
+        await initMap()
         return
     }
 
     const script = document.createElement('script')
     script.id = 'gmaps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&libraries=places&callback=initMap`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`
     script.async = true
     script.defer = true
     document.body.appendChild(script)
