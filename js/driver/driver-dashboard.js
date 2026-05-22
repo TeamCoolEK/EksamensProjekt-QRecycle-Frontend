@@ -19,6 +19,7 @@ let tempIdCounter = 0
 let locationInterval = null
 let driverMarker = null
 let userPanned = false
+let driverPosition = null
 
 
 function renderDriverMap() {
@@ -57,9 +58,14 @@ function renderDriverMap() {
                 📍 Henter GPS...
                 </button>
                 
-                <!-- Følg mig knap — genaktiverer auto-center -->
+                <!-- Find mig knap — genaktiverer auto-center -->
                 <button id="followBtn" onclick="followDriver()" style="display:none;">
-               👀 Følg mig
+               👀 Find mig
+                </button>
+                
+                <!-- Start rute knap — zoomer ind på chaufføren og beregner rute -->
+                <button id="routeBtn" onclick="startRoute()" style="display:none;">
+                 🚀 Start rute
                 </button>
 
                 <!-- Tilføj ny adresse manuelt -->
@@ -112,6 +118,7 @@ function renderDriverMap() {
     window.followDriver = followDriver
     window.removeDriverMarker = removeDriverMarker
     window.zoomToDriver = zoomToDriver
+    window.startRoute = startRoute
 
 
     loadGoogleMapsScript()
@@ -121,7 +128,7 @@ function renderDriverMap() {
 function zoomToDriver() {
     if (driverMarker !== null) {
         map.setCenter(driverMarker.getPosition())
-        map.setZoom(1)
+        map.setZoom(20)
     }
 }
 
@@ -274,7 +281,13 @@ function calculateRoute() {
         return
     }
 
-    if (addresses.length === 1) {
+    // Brug chaufføren position som startpunkt hvis sporing er aktiv
+    // Ellers brug første adresse i listen som før
+    const origin = driverPosition
+        ? { lat: driverPosition.lat, lng: driverPosition.lng }
+        : addresses[0]
+
+    if (addresses.length === 1 && !driverPosition) {
         new google.maps.Geocoder().geocode({ address: addresses[0] }, (results, status) => {
             if (status === 'OK') {
                 map.setCenter(results[0].geometry.location)
@@ -288,12 +301,11 @@ function calculateRoute() {
         return
     }
 
-    const origin = addresses[0]
+    // Alle adresser er waypoints når chaufføren position bruges som startpunkt
     const destination = addresses[addresses.length - 1]
-    const waypoints = addresses.slice(1, -1).map(addr => ({
-        location: addr,
-        stopover: true
-    }))
+    const waypoints = driverPosition
+        ? addresses.slice(0, -1).map(addr => ({ location: addr, stopover: true }))
+        : addresses.slice(1, -1).map(addr => ({ location: addr, stopover: true }))
 
     directionsService.route({
         origin,
@@ -475,6 +487,7 @@ function updateDriverMarker(latitude, longitude) {
     if (!map) return
 
     const position = { lat: latitude, lng: longitude }
+    driverPosition = position // gem chaufføren position
 
     if (driverMarker === null) {
         // Opret markør første gang
@@ -494,6 +507,9 @@ function updateDriverMarker(latitude, longitude) {
         // Zoom ind første gang markøren vises
         map.setCenter(position)
         map.setZoom(15)
+        calculateRoute() // genberegn ruten med chaufføren som startpunkt
+        // Vis rute-knap
+        document.getElementById('routeBtn').style.display = 'block'
     } else {
         driverMarker.setPosition(position)
     }
@@ -509,4 +525,21 @@ function removeDriverMarker() {
         driverMarker.setMap(null)
         driverMarker = null
     }
+    driverPosition = null
+    const routeBtn = document.getElementById('routeBtn')
+    if (routeBtn) routeBtn.style.display = 'none'
+    calculateRoute()
+}
+
+// Zoomer ind på chaufføren og beregner rute fra chaufføren position
+function startRoute() {
+    userPanned = false
+    calculateRoute()
+    // Vent til ruten er beregnet og zoom derefter ind på chaufføren
+    setTimeout(() => {
+        if (driverMarker !== null) {
+            map.setCenter(driverMarker.getPosition())
+            map.setZoom(20)
+        }
+    }, 500)
 }

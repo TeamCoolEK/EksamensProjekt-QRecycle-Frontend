@@ -17,7 +17,7 @@ export function checkLocationPermission() {
             btn.textContent = '❌ Tillad lokation for at starte ruten'
             btn.disabled = true
         } else {
-            btn.textContent = '📍 Start sporing'
+            btn.textContent = '📍 Beregn rute fra min lokation'
             btn.disabled = false
         }
     })
@@ -67,7 +67,7 @@ export function stopTracking() {
 
     const btn = document.getElementById('locationBtn')
     if (btn) {
-        btn.textContent = '📍 Start sporing'
+        btn.textContent = '📍 Beregn rute fra min lokation'
         btn.disabled = false
     }
 
