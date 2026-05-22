@@ -36,6 +36,7 @@ function renderAdminDashboardPage() {
                 Statistik
             </button>
             
+            <!--QE-42 - QE-319 - knap til Admin til brugeradministration!-->
             <button onclick="window.location.hash='#/admin/userList'">
                 Brugeradministration
             </button>
