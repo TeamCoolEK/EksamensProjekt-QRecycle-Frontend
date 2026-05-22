@@ -1,5 +1,4 @@
 import { BASE_URL } from '../../config.js';
-import { MAPS_API_KEY } from "../../config.secrets.js";
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
 
@@ -8,7 +7,7 @@ export function initDriverDashboard() {
 }
 
 export function renderDriverExpenses() {
-    renderDriverMap()
+    renderDriverMap();
 }
 
 let map = null
@@ -22,33 +21,50 @@ let userPanned = false
 let driverPosition = null
 
 
+// Fast slutpunkt for ruten
+const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
+
+const TEMP_STOPS_KEY = "driverTempStops"
+
 function renderDriverMap() {
-    const app = document.getElementById('app')
+    const app = document.getElementById('app');
 
     app.innerHTML = `
-    <!-- Navigation bar -->
-    <nav class="navbar" onclick="toggleMenu()">
-        <button class="menu-btn">☰</button>
-        <span class="nav-title">Dagens rute</span>
-        <img src="img/logo.png" class="nav-logo" alt="Q Genbrug">
-    </nav>
+        <!-- Navigation bar -->
+        <nav class="navbar">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
 
-    <div class="layout">
+            <span class="nav-title">Dagens rute</span>
 
-        <!-- Overlay til at lukke sidebar ved at klikke på kortet -->
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+            <div class="driver-navbar-actions">
+                <img
+                    src="img/logo.png"
+                    class="nav-logo driver-logo-btn"
+                    id="driverLogoBtn"
+                    alt="Q Genbrug"
+                >
 
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-
-            <!-- Sidebar header med lukkeknap -->
-            <div class="sidebar-header">
-                <span>Luk sidepanel</span>
-                <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
+                <button id="driverLogoutBtn" class="logout-btn">
+                    Log ud
+                </button>
             </div>
+        </nav>
 
-                <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend.
-                -->
+        <div class="layout">
+
+            <!-- Overlay til at lukke sidebar ved at klikke på kortet -->
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+
+                <!-- Sidebar header med lukkeknap -->
+                <div class="sidebar-header">
+                    <span>Luk sidepanel</span>
+                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
+                </div>
+
+                <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend. -->
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
@@ -77,7 +93,7 @@ function renderDriverMap() {
 
                 <!-- Udgift knap -->
                 <button class="expense-btn" onclick="window.location.hash='#/driver/createExpenses'">
-                Tilføj udgift
+                    Tilføj udgift
                 </button>
 
             </div>
@@ -92,8 +108,16 @@ function renderDriverMap() {
             <div class="modal-box">
                 <h3 id="modalTitle"></h3>
                 <p id="modalAddress"></p>
+
                 <label>Antal poser afhentet:</label>
-                <input type="number" id="bagCount" min="0" placeholder="Antal poser">
+
+                <input
+                    type="number"
+                    id="bagCount"
+                    min="0"
+                    placeholder="Antal poser"
+                >
+
                 <div class="modal-buttons">
                     <button onclick="confirmPickup()">Bekræft afhentning</button>
                     <button class="cancel-btn" onclick="closeModal()">Annuller</button>
@@ -140,38 +164,44 @@ function followDriver() {
 }
 
 
-function loadGoogleMapsScript() {
+async function loadGoogleMapsScript() {
+    const { apiKey } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
-        initMap()
+        await initMap()
         return
     }
 
     const script = document.createElement('script')
     script.id = 'gmaps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&libraries=places&callback=initMap`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`
     script.async = true
     script.defer = true
     document.body.appendChild(script)
 }
 
-//Autocomplete funktion til at tilføje manuel adresse
+// Autocomplete funktion til at tilføje manuel adresse
 function initAutocomplete() {
-    const input = document.getElementById('newAddress')
+    const input = document.getElementById('newAddress');
+
     const autocomplete = new google.maps.places.Autocomplete(input, {
         componentRestrictions: { country: 'dk' },
         fields: ['formatted_address', 'name']
-    })
+    });
 
     autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace()
-        if (!place.formatted_address) return
-        input.value = place.formatted_address
-    })
+        const place = autocomplete.getPlace();
+
+        if (!place.formatted_address) {
+            return;
+        }
+
+        input.value = place.formatted_address;
+    });
 }
 
-//QE-169 (Opdater ved indlæsning). Implementeret via initMap,
+// QE-169 (Opdater ved indlæsning). Implementeret via initMap,
 // som kaldes automatisk, når kortet initialiseres ved sidens indlæsning.
 async function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -179,14 +209,15 @@ async function initMap() {
         // Centrer kortet på København
         zoom: 11
         // Zoom niveau — højere tal = tættere på
+    });
 
-    })
-
-    directionsService = new google.maps.DirectionsService()
+    directionsService = new google.maps.DirectionsService();
     // Service til at beregne ruter mellem adresser
-    directionsRenderer = new google.maps.DirectionsRenderer()
+
+    directionsRenderer = new google.maps.DirectionsRenderer();
     // Renderer til at tegne ruten på kortet
-    directionsRenderer.setMap(map)
+
+    directionsRenderer.setMap(map);
     // Kobl rendereren til vores kort så ruten tegnes der
 
     // Deaktiver auto-center når brugeren panorerer manuelt
@@ -196,28 +227,32 @@ async function initMap() {
 
     initAutocomplete()
 
-    await fetchAndBuildRoute()
+    await fetchAndBuildRoute();
     // Hent afhentninger fra backend og byg ruten
     checkLocationPermission()
 }
 
-
 async function fetchAndBuildRoute() {
-    const stopList = document.getElementById('stopList')
-    // Hent sidebar elementet hvor stop-listen vises
+    const stopList = document.getElementById('stopList');
 
+    // Hent sidebar elementet hvor stop-listen vises
     // Sender GET request til Java backend
     // Henter alle afhentninger med status KLAR
-    const response = await authFetch(`${BASE_URL}/driver/collections/active`)
+    const response = await authFetch(`${BASE_URL}/driver/collections/active`);
 
-    //fejlbesked hvis backend ikke giver svar, eller hvis status er ikke OK 200.
+    // Fejlbesked hvis backend ikke giver svar, eller hvis status ikke er OK 200.
     if (!response.ok) {
-        stopList.innerHTML = '<p>Kunne ikke hente afhentninger.</p>'
-        return
+        stopList.innerHTML = '<p>Kunne ikke hente afhentninger.</p>';
+        return;
     }
 
-    const data = await response.json()
-    collections = data.filter(c => c.address)
+    const data = await response.json();
+    const savedTempStops = loadTempStops();
+
+    collections = [
+        ...data.filter(c => c.address),
+        ...savedTempStops
+    ]
 
     if (collections.length === 0) {
         // Hvis ingen aktive afhentninger, altså at listen er tom, vises denne besked
@@ -226,60 +261,81 @@ async function fetchAndBuildRoute() {
         return
     }
 
-    renderStopList()
-    calculateRoute()
+    renderStopList();
+    calculateRoute();
 }
 
-//Listen viser virksomhedens navn og adresse
+// Listen viser virksomhedens navn og adresse
 function renderStopList() {
-    const stopList = document.getElementById('stopList')
+    const stopList = document.getElementById('stopList');
 
     stopList.innerHTML = collections.map(c => {
-        const isManual = c.id.toString().startsWith('manual')
+        const isManual = c.id.toString().startsWith('manual');
+
         const buttons = isManual
-            ? `<button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
-           <button class="pickup-btn done-btn" onclick="doneManualStop('${c.id}')">Done</button>`
-            : `<button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>`
+            ? `
+                <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
+                <button class="pickup-btn done-btn" onclick="doneManualStop('${c.id}')">Done</button>
+            `
+            : `
+                <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
+            `;
 
         return `
-        <!--Opret en div per afhentning med unikt id
-        id bruges til at fjerne stopet fra DOM når det er afhentet -->      
+            <!-- Opret en div per afhentning med unikt id.
+            id bruges til at fjerne stoppet fra DOM når det er afhentet -->
             <div class="stop-item" id="stop-${c.id}">
-            <div class="stop-info">
-                <div class="stop-header">
-                    <strong>${c.businessName}</strong>
-                    <div class="stop-buttons">
-                        ${buttons}
+
+                <div class="stop-info">
+
+                    <div class="stop-header">
+                        <strong>${c.businessName}</strong>
+
+                        <div class="stop-buttons">
+                            ${buttons}
+                        </div>
                     </div>
+
+                    <small>${c.address}</small>
+
                 </div>
-                <small>${c.address}</small>
+
+                <button class="remove-btn" onclick="removeStop('${c.id}')">×</button>
+
             </div>
-            <button class="remove-btn" onclick="removeStop('${c.id}')">×</button>
-        </div>
-    `
-}).join('')
+        `;
+    }).join('');
 }
 
 function doneManualStop(collectionId) {
-    collections = collections.filter(c => c.id.toString() !== collectionId.toString())
-    document.getElementById(`stop-${collectionId}`)?.remove()
-    showSuccessEmoji()
+    collections = collections.filter(c =>
+        c.id.toString() !== collectionId.toString()
+    );
+
+    saveTempStops()
+
+    document.getElementById(`stop-${collectionId}`)?.remove();
+
+    showSuccessEmoji();
 
     if (collections.length === 0) {
-        document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
-        directionsRenderer.set('directions', null)
+        document.getElementById('stopList').innerHTML =
+            '<p>✅ Alle afhentninger afsluttet!</p>';
+
+        directionsRenderer.set('directions', null);
     } else {
-        calculateRoute()
+        calculateRoute();
     }
 }
 
-//Virksomheder vises som markører på kortet. Der placeres markører via Google Maps Geocoder.
+// Virksomheder vises som route på kortet.
+// Ruten slutter altid på Retortvej 38, 2500 Valby.
 function calculateRoute() {
-    const addresses = collections.map(c => c.address)
+    const addresses = collections.map(c => c.address);
 
     if (addresses.length === 0) {
-        directionsRenderer.set('directions', null)
-        return
+        directionsRenderer.set('directions', null);
+        return;
     }
 
     // Brug chaufføren position som startpunkt hvis sporing er aktiv
@@ -309,97 +365,152 @@ function calculateRoute() {
         : addresses.slice(1, -1).map(addr => ({ location: addr, stopover: true }))
 
     directionsService.route({
-        origin,
-        destination,
-        waypoints,
+        origin: origin,
+        destination: ROUTE_DESTINATION,
+        waypoints: waypoints,
         optimizeWaypoints: true,
         travelMode: google.maps.TravelMode.DRIVING
     }, (result, status) => {
-        if (status !== 'OK') return
-        directionsRenderer.setDirections(result)
-    })
-}
 
+        if (status !== 'OK') {
+            console.log("Kunne ikke beregne rute:", status);
+            return;
+        }
+
+        directionsRenderer.setDirections(result);
+    });
+}
 
 // Tilføj manuel adresse til ruten
 function addManualStop() {
-    const input = document.getElementById('newAddress')
-    const address = input.value.trim()
+    const input = document.getElementById('newAddress');
+    const address = input.value.trim();
 
-    if (!address) return
+    if (!address) {
+        return;
+    }
 
     // Tilføj som et midlertidigt stop
-    const tempId = `manual-${tempIdCounter++}`
-    collections.push({
+    const tempId = `manual-${Date.now()}`;
+
+    const tempStop = {
         id: tempId,
         businessName: address,
         address: address
-    })
+    };
 
-    input.value = ''
-    renderStopList()
-    calculateRoute() //Genkaldes efter tilføjelse af nyt stop
+    collections.push(tempStop)
+
+    saveTempStops();
+
+    input.value = '';
+
+    renderStopList();
+
+    calculateRoute();
+    // Genkaldes efter tilføjelse af nyt stop
 }
 
 // Fjern stop fra ruten uden at markere som afhentet
 function removeStop(collectionId) {
-    collections = collections.filter(c => c.id !== collectionId)
-    document.getElementById(`stop-${collectionId}`)?.remove()
-    calculateRoute()
-}
+    collections = collections.filter(c =>
+        c.id.toString() !== collectionId.toString()
+    );
 
+    saveTempStops();
+
+    document.getElementById(`stop-${collectionId}`)?.remove();
+
+    if (collections.length === 0) {
+        directionsRenderer.set('directions', null);
+        document.getElementById('stopList').innerHTML =
+            '<p>Ingen aktive afhentninger i dag.</p>';
+        return;
+    }
+
+    calculateRoute();
+}
 
 // Klik på stop — åbn pop-up til antal poser
 function onStopChecked(collectionId) {
-    const collection = collections.find(c => c.id.toString() === collectionId.toString())
-    if (!collection) return
+    const collection = collections.find(c =>
+        c.id.toString() === collectionId.toString()
+    );
 
-    const isManual = collectionId.toString().startsWith('manual')
+    if (!collection) {
+        return;
+    }
 
-    document.getElementById('modalTitle').textContent = collection.businessName
-    document.getElementById('modalAddress').textContent = collection.address
-    document.getElementById('bagCount').value = ''
+    const isManual = collectionId.toString().startsWith('manual');
 
-    // Skift knaptekst afhængigt af om det er manuelt stop eller virksomhed som har markeret klar til afhening
+    document.getElementById('modalTitle').textContent =
+        collection.businessName;
+
+    document.getElementById('modalAddress').textContent =
+        collection.address;
+
+    document.getElementById('bagCount').value = '';
+
+    // Skift knaptekst afhængigt af om det er manuelt stop eller virksomhed som har markeret klar til afhentning
     document.querySelector('#bagModal .modal-buttons button').textContent =
-        isManual ? 'Poser ikke nødvendigt' : 'Bekræft afhentning'
+        isManual ? 'Poser ikke nødvendigt' : 'Bekræft afhentning';
 
-    document.getElementById('bagModal').style.display = 'flex'
-    document.getElementById('bagModal').dataset.collectionId = collectionId
+    document.getElementById('bagModal').style.display = 'flex';
+
+    document.getElementById('bagModal').dataset.collectionId =
+        collectionId;
 }
-
 
 // Bekræft afhentning
 async function confirmPickup() {
-    const modal = document.getElementById('bagModal')
-    const collectionId = modal.dataset.collectionId
-    const bagCount = parseInt(document.getElementById('bagCount').value)
+    const modal = document.getElementById('bagModal');
 
-    //Systemet accepterer 0 og op som gyldigt antal poser
-    const isManual = collectionId.toString().startsWith('manual')
+    const collectionId = modal.dataset.collectionId;
+
+    const bagCount = parseInt(
+        document.getElementById('bagCount').value
+    );
+
+    // Systemet accepterer 0 og op som gyldigt antal poser
+    const isManual = collectionId.toString().startsWith('manual');
+
     if (!isManual && (isNaN(bagCount) || bagCount < 0)) {
-        alert('Indtast venligst antal poser.')
-        return
+        alert('Indtast venligst antal poser.');
+        return;
     }
 
     // Spring backend over hvis manuelt tilføjet stop
-    if (!collectionId.toString().startsWith('manual')) {
-        const response = await authFetch(`${BASE_URL}/driver/collections/${collectionId}/complete`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ driverBags: bagCount })
-        })
+    if (!isManual) {
+        const response = await authFetch(
+            `${BASE_URL}/driver/collections/${collectionId}/complete`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    driverBags: bagCount
+                })
+            }
+        );
 
         if (!response.ok) {
-            alert('Noget gik galt. Prøv igen.')
-            return
+            alert('Noget gik galt. Prøv igen.');
+            return;
         }
     }
 
-    collections = collections.filter(c => c.id.toString() !== collectionId.toString())
-    document.getElementById(`stop-${collectionId}`)?.remove()
-    closeModal()
-    showSuccessEmoji()
+    collections = collections.filter(c =>
+        c.id.toString() !== collectionId.toString()
+    );
+
+    saveTempStops()
+
+    document.getElementById(`stop-${collectionId}`)?.remove();
+
+    closeModal();
+
+    showSuccessEmoji();
 
     if (collections.length === 0) {
         document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
@@ -408,29 +519,34 @@ async function confirmPickup() {
         document.getElementById('locationBtn').style.display = 'none'
 
     } else {
-        calculateRoute()
+        calculateRoute();
     }
 }
 
-//Visningen og animationen af tommel-op emojien efter antal poser afhentet
+// Visningen og animationen af tommel-op emojien efter antal poser afhentet
 function showSuccessEmoji() {
     const emoji = document.createElement('div');
+
     emoji.className = 'success-emoji';
+
     emoji.innerHTML = '👍';
+
     document.body.appendChild(emoji);
 
-    // Fjern emojien igen efter 2 sekunder (inkl. fade-out)
+    // Fjern emojien igen efter 2 sekunder inkl. fade-out
     setTimeout(() => {
         emoji.classList.add('fade-out');
-        setTimeout(() => emoji.remove(), 500);
+
+        setTimeout(() => {
+            emoji.remove();
+        }, 500);
+
     }, 1500);
 }
 
-
 function closeModal() {
-    document.getElementById('bagModal').style.display = 'none'
+    document.getElementById('bagModal').style.display = 'none';
 }
-
 
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar')
@@ -546,4 +662,76 @@ function startRoute() {
             map.setZoom(20)
         }
     }, 500)
+}
+    const sidebar = document.getElementById('sidebar');
+
+    const overlay = document.getElementById('sidebarOverlay');
+
+    const isOpen = sidebar.classList.toggle('open');
+
+    overlay.classList.toggle('active', isOpen);
+}
+
+function setupDriverNavbarEvents() {
+
+    document
+        .getElementById("driverLogoutBtn")
+        .addEventListener("click", function () {
+
+            clearTempStops();
+
+            localStorage.removeItem("jwt");
+
+            window.location.hash = "#/login";
+        });
+
+    document
+        .getElementById("driverLogoBtn")
+        .addEventListener("click", async function () {
+
+            const user = await getCurrentUser();
+
+            if (user && user.role === "ADMIN") {
+                window.location.hash = "#/admin/dashboard";
+            }
+        });
+}
+
+async function getCurrentUser() {
+
+    try {
+        const response = await authFetch(`${BASE_URL}/auth/me`);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        return await response.json();
+
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+
+function saveTempStops(){
+    const tempStops = collections.filter(c =>
+    c.id.toString().startsWith("manual"))
+
+    localStorage.setItem(TEMP_STOPS_KEY, JSON.stringify(tempStops))
+}
+
+function loadTempStops(){
+    const savedTempStops = localStorage.getItem(TEMP_STOPS_KEY)
+
+    if (!savedTempStops){
+        return []
+    }
+
+    return JSON.parse(savedTempStops)
+}
+
+    function clearTempStops(){
+        localStorage.removeItem(TEMP_STOPS_KEY)
+
 }

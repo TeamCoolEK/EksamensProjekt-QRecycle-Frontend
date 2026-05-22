@@ -1,4 +1,5 @@
 import {BASE_URL} from "../../config.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminCollections(){
     renderAdminCollectionsPage();
@@ -7,6 +8,8 @@ export function initAdminCollections(){
 function renderAdminCollectionsPage(){
 
     document.getElementById("app").innerHTML = `
+    
+        ${renderAdminNavbar("Afhentninger")}
     
     <h1>Afhentningshistorik</h1>
     
@@ -35,6 +38,8 @@ function renderAdminCollectionsPage(){
 <tbody id="collectionTableBody"></tbody>
 </table>
     `;
+
+    setupAdminNavbarEvents()
 
     document.getElementById("backToDashboardBtn")
         .addEventListener("click", function (){
@@ -65,28 +70,48 @@ function loadAllCollections(){
         })
 }
 
-function displayCollections(collections){
+function displayCollections(collections) {
     const tableBody = document.getElementById("collectionTableBody");
 
     tableBody.innerHTML = "";
 
-    if (collections.length === 0){
-        showCollectionMessage("Der er ingen afhentninger")
+    if (collections.length === 0) {
+        showCollectionMessage("Der er ingen afhentninger");
         return;
     }
 
     showCollectionMessage("");
+
+    collections.sort((a, b) => {
+
+        const statusOrder = {
+            KLAR: 1,
+            AFHENTET: 2,
+            IKKE_KLAR: 3
+        };
+
+        const statusCompare =
+            statusOrder[a.status] - statusOrder[b.status];
+
+        if (statusCompare !== 0) {
+            return statusCompare;
+        }
+
+        return new Date(b.updatedAt) - new Date(a.updatedAt);
+    });
+
     collections.forEach(collection => {
         const row = document.createElement("tr");
 
         row.innerHTML = `
-        <td>${collection.businessName}</td>
-        <td> ${formatDate(collection["createdAt"])}</td>
-        <td> ${formatDate(collection["updatedAt"])}</td>
-        <td> ${collection.businessBags}</td>
-        <td> ${collection.driverBags}</td>
-        <td> ${formatStatus(collection.status)}</td>
-            `
+            <td>${collection.businessName}</td>
+            <td>${formatDate(collection["createdAt"])}</td>
+            <td>${formatDate(collection["updatedAt"])}</td>
+            <td>${collection.businessBags}</td>
+            <td>${collection.driverBags}</td>
+            <td>${formatStatus(collection.status)}</td>
+        `;
+
         tableBody.appendChild(row);
     });
 }

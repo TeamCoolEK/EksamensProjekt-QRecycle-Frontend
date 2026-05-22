@@ -1,4 +1,6 @@
 import { BASE_URL } from "../../config.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
+
 
 export function initCreateBusiness() {
     renderBusinessPage();
@@ -8,6 +10,9 @@ export function initCreateBusiness() {
 function renderBusinessPage() {
 
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Opret virksomhed")}
+
 
         <h1>Opret virksomhed</h1>
         <form id="createBusinessForm">
@@ -50,6 +55,7 @@ function renderBusinessPage() {
         <p id="businessMessage"></p>
     `;
 
+    setupAdminNavbarEvents()
     setupBusinessEvents();
 }
 

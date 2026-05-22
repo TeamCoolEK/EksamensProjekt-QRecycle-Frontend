@@ -591,3 +591,334 @@ button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
 }
+
+/* Admin statistics / QRecycle inspired styling */
+
+:root {
+    --qr-green: #2e7d32;
+    --qr-green-dark: #1b5e20;
+    --qr-green-light: #e8f5e9;
+    --qr-dark: #1e293b;
+    --qr-text: #1f2937;
+    --qr-muted: #6b7280;
+    --qr-border: #e5e7eb;
+    --qr-bg: #f7f8f6;
+    --qr-white: #ffffff;
+}
+
+/* Giver admin-sider mere hjemmeside/card look */
+#app > h1,
+#app > h2,
+#statisticsMessage,
+#statisticsSummary,
+#app > table,
+#app > .business-actions {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Overskrift */
+#app > h1 {
+    color: var(--qr-dark);
+    font-size: 34px;
+    font-weight: 800;
+    margin-top: 40px;
+    margin-bottom: 8px;
+}
+
+#app > h1::after {
+    content: "";
+    display: block;
+    width: 90px;
+    height: 4px;
+    background: var(--qr-green);
+    border-radius: 999px;
+    margin: 14px auto 0;
+}
+
+#app > h2 {
+    color: var(--qr-text);
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 25px;
+}
+
+/* Admin action/filter område */
+.business-actions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 22px;
+    margin-bottom: 22px;
+    padding: 18px;
+    background: var(--qr-white);
+    border: 1px solid var(--qr-border);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* Knapper */
+.business-actions button,
+#backToDashboardBtn {
+    width: auto;
+    min-width: 180px;
+    background: var(--qr-green);
+    border-radius: 999px;
+    padding: 13px 22px;
+    box-shadow: 0 8px 18px rgba(46, 125, 50, 0.25);
+}
+
+.business-actions button:hover,
+#backToDashboardBtn:hover {
+    background: var(--qr-green-dark);
+}
+
+/* Filters */
+.business-actions select,
+.business-actions input[type="text"],
+.business-actions input[type="date"] {
+    width: auto;
+    min-width: 210px;
+    margin-bottom: 0;
+    border-radius: 999px;
+    border: 1px solid var(--qr-border);
+    background: #fbfbfb;
+    color: var(--qr-text);
+}
+
+/* Statistik besked */
+#statisticsMessage,
+#collectionListMessage,
+#businessListMessage {
+    max-width: 1200px;
+    background: var(--qr-green-light);
+    color: var(--qr-green-dark);
+    border-left: 5px solid var(--qr-green);
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+/* Summary card */
+#statisticsSummary {
+    margin-top: 20px;
+    margin-bottom: 25px;
+}
+
+#statisticsSummary .status-card {
+    border-left: none;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #ffffff 0%, #eef8ef 100%);
+    border: 1px solid #d8eadb;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.10);
+}
+
+#statisticsSummary h3 {
+    color: var(--qr-green-dark);
+    font-size: 22px;
+}
+
+#statisticsSummary p {
+    font-size: 17px;
+    color: var(--qr-text);
+    margin: 8px 0;
+}
+
+#statisticsSummary strong {
+    color: var(--qr-green-dark);
+    font-size: 20px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    max-width: 1200px;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    background: var(--qr-white);
+    border-radius: 20px;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.10);
+    border: 1px solid var(--qr-border);
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+thead {
+    background: var(--qr-dark);
+    color: white;
+}
+
+th {
+    padding: 16px 18px;
+    text-align: left;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+td {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--qr-border);
+    color: var(--qr-text);
+    font-size: 15px;
+}
+
+tbody tr:hover {
+    background: var(--qr-green-light);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Gør tal mere tydelige */
+td:nth-child(4),
+td:nth-child(5) {
+    font-weight: 800;
+    color: var(--qr-green-dark);
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    #app > h1 {
+        font-size: 26px;
+        padding: 0 14px;
+    }
+
+    .business-actions {
+        margin-left: 12px;
+        margin-right: 12px;
+        padding: 14px;
+    }
+
+    .business-actions select,
+    .business-actions input[type="text"],
+    .business-actions input[type="date"],
+    .business-actions button {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        margin-left: 12px;
+        margin-right: 12px;
+        width: calc(100% - 24px);
+    }
+
+    th,
+    td {
+        white-space: nowrap;
+    }
+
+    #statisticsSummary,
+    #statisticsMessage,
+    #collectionListMessage,
+    #businessListMessage {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+}
+
+/* Admin navbar */
+
+.admin-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e293b;
+    padding: 14px 20px;
+}
+
+.admin-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+}
+
+.admin-logo-btn {
+    height: 42px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.admin-logo-btn:hover {
+    transform: scale(1.05);
+}
+
+.logout-btn {
+    width: auto;
+    padding: 10px 18px;
+    background-color: #e74c3c;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Driver navbar actions */
+
+.driver-navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.driver-logo-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.driver-logo-btn:hover {
+    transform: scale(1.05);
+}
+
+.logout-btn {
+    width: auto;
+    padding: 10px 18px;
+    background-color: #e74c3c;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+.page-container {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+/* Business navbar */
+
+.business-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.business-navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.business-logo-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.business-logo-btn:hover {
+    transform: scale(1.05);
+}
