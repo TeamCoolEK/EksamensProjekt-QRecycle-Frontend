@@ -191,9 +191,63 @@ function applyFiltersAndSorting() {
             new Date(a.createdAt) - new Date(b.createdAt)
         );
     }
+    const groupedStatistics =
+        groupStatisticsByBusiness(filteredStatistics);
 
-    displayStatistics(filteredStatistics);
-    displaySummary(filteredStatistics);
+    displayStatistics(groupedStatistics);
+    displaySummary(groupedStatistics);
+}
+
+function groupStatisticsByBusiness(statistics) {
+
+    const groupedMap = new Map();
+
+    statistics.forEach(statistic => {
+
+        const existingBusiness =
+            groupedMap.get(statistic.businessName);
+
+        if (!existingBusiness) {
+
+            groupedMap.set(statistic.businessName, {
+                businessName: statistic.businessName,
+                createdAt: statistic.createdAt,
+                updatedAt: statistic.updatedAt,
+                businessBags: statistic.businessBags,
+                driverBags: statistic.driverBags
+            });
+
+        } else {
+
+            // Læg poser sammen
+            existingBusiness.businessBags += statistic.businessBags;
+            existingBusiness.driverBags += statistic.driverBags;
+
+            // Opdater dato hvis nyere
+            if (
+                new Date(statistic.updatedAt)
+                >
+                new Date(existingBusiness.updatedAt)
+            ) {
+
+                existingBusiness.updatedAt =
+                    statistic.updatedAt;
+            }
+
+            // Opdater createdAt hvis nyere
+            if (
+                new Date(statistic.createdAt)
+                >
+                new Date(existingBusiness.createdAt)
+            ) {
+
+                existingBusiness.createdAt =
+                    statistic.createdAt;
+            }
+        }
+    });
+
+    return Array.from(groupedMap.values());
 }
 
 function displayStatistics(statistics) {
@@ -227,7 +281,6 @@ function displayStatistics(statistics) {
 
 function displaySummary(statistics) {
 
-    const totalCollections = statistics.length;
 
     const totalBusinessBags = statistics.reduce((sum, statistic) =>
         sum + statistic.businessBags, 0
@@ -241,7 +294,6 @@ function displaySummary(statistics) {
 
         <div class="status-card status-ready">
             <h3>Samlet statistik</h3>
-            <p>Antal afhentninger: <strong>${totalCollections}</strong></p>
             <p>Poser registreret af virksomheder: <strong>${totalBusinessBags}</strong></p>
             <p>Poser registreret af chauffører: <strong>${totalDriverBags}</strong></p>
         </div>
