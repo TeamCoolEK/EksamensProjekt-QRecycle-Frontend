@@ -35,9 +35,9 @@ function renderAdminDashboardPage() {
             <button id="statistik">
                 Statistik
             </button>
-
-            <button onclick="window.location.hash='#/admin/createUser'">
-                Opret bruger
+            
+            <button onclick="window.location.hash='#/admin/userList'">
+                Brugeradministration
             </button>
 
             <button onclick="alert('Coming soon!')">
@@ -63,7 +63,7 @@ function loadDashboardData() {
     const token = localStorage.getItem('jwt')
     fetch(BASE_URL + "/admin/dashboard", {
         method: "GET",
-        headers: { 'Authorization': `${token}` }
+        headers: { 'Authorization': `Bearer ${token}` } //Hvad betyder Bearer?
     })
 
         .then(res => {
@@ -72,34 +72,28 @@ function loadDashboardData() {
             if (!res.ok) {
                 throw new Error("Kunne ikke hente dashboard");
             }
-
             // Konverterer response til JSON
             return res.json();
         })
 
         .then(bagsReadyForPickup => {
-
             // Viser antal poser klar til afhentning
             document.getElementById("bagsReadyForPickup").textContent = bagsReadyForPickup + " poser";
         })
 
         .catch(error => {
-
             // Logger fejl i console
             console.log(error);
-
             // Viser fejl på dashboardet
             document.getElementById("bagsReadyForPickup").textContent = "Fejl";
-            showDashboardMessage("Kunne ikke hente dashboard data");
+            showDashboardMessage("Kunne ikke hente data");
         });
 }
 
 // Renderer midlertidig statistikside
 function renderStatisticPage() {
-
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
-
         <h1>Statistik</h1>
         <p>Statistikside kommer senere</p>
         <button onclick="renderAdminDashboardPage()">

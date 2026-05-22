@@ -11,6 +11,7 @@ const routes = {
     '#/admin/businessList':   { roles: ['ADMIN'],                     page: 'businessList' },
     '#/admin/createBusiness': { roles: ['ADMIN'],                     page: 'createBusiness' },
     '#/admin/createUser':     { roles: ['ADMIN'],                     page: 'createUser' },
+    '#/admin/userList':       { roles: ['ADMIN'],                     page: 'userList' },
     //driver routes
     '#/driver/dashboard':     { roles: ['ADMIN', 'DRIVER'],           page: 'driverDashboard' },
     '#/driver/createExpenses':{ roles: ['ADMIN', 'DRIVER'],           page: 'createExpenses'},
@@ -98,6 +99,10 @@ async function loadPage(page) {
         case 'createUser':
             const { initCreateUser } = await import('./admin/create-user.js');
             initCreateUser(content);
+            break;
+        case 'userList':
+            const { initAdminUserList } = await import('./admin/user-list.js');
+            initAdminUserList(content);
             break;
         case 'createBusiness':
             const { initCreateBusiness } = await import('./admin/create-business.js');
