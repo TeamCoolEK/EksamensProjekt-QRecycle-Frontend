@@ -14,7 +14,6 @@ let map = null
 let directionsService = null
 let directionsRenderer = null
 let collections = []
-let tempIdCounter = 0
 let locationInterval = null
 let driverMarker = null
 let userPanned = false
@@ -136,6 +135,7 @@ function renderDriverMap() {
     window.doneManualStop = doneManualStop
     window.startTracking = startTracking
     window.stopTracking = stopTracking
+    window.removeEventListener('beforeunload', stopTracking)
     window.addEventListener('beforeunload', stopTracking)
     window.startPolling = startPolling
     window.stopPolling = stopPolling
@@ -144,6 +144,7 @@ function renderDriverMap() {
     window.zoomToDriver = zoomToDriver
     window.startRoute = startRoute
 
+    setupDriverNavbarEvents()
 
     loadGoogleMapsScript()
 }
@@ -361,8 +362,8 @@ function calculateRoute() {
     // Alle adresser er waypoints når chaufføren position bruges som startpunkt
     const destination = addresses[addresses.length - 1]
     const waypoints = driverPosition
-        ? addresses.slice(0, -1).map(addr => ({ location: addr, stopover: true }))
-        : addresses.slice(1, -1).map(addr => ({ location: addr, stopover: true }))
+        ? addresses.map(addr => ({ location: addr, stopover: true }))
+        : addresses.slice(1).map(addr => ({ location: addr, stopover: true }))
 
     directionsService.route({
         origin: origin,
@@ -562,9 +563,10 @@ Polling er at frontend spørger backend "har du noget nyt ift. lokationen?" med 
 som i vores tilfælde er 10 sekunder, uanset om der er nyt eller ej.
  */
 function startPolling() {
-    // Kald med det samme første gang
+    stopPolling()
+
     pollLocation()
-    // Derefter hvert 10. sekund
+
     locationInterval = setInterval(pollLocation, 10000)
 }
 
@@ -663,14 +665,6 @@ function startRoute() {
         }
     }, 500)
 }
-    const sidebar = document.getElementById('sidebar');
-
-    const overlay = document.getElementById('sidebarOverlay');
-
-    const isOpen = sidebar.classList.toggle('open');
-
-    overlay.classList.toggle('active', isOpen);
-}
 
 function setupDriverNavbarEvents() {
 
@@ -714,24 +708,27 @@ async function getCurrentUser() {
     }
 }
 
-function saveTempStops(){
+// Gemmer kun midlertidige stop i localStorage
+function saveTempStops() {
     const tempStops = collections.filter(c =>
-    c.id.toString().startsWith("manual"))
+        c.id.toString().startsWith("manual")
+    )
 
     localStorage.setItem(TEMP_STOPS_KEY, JSON.stringify(tempStops))
 }
 
-function loadTempStops(){
+// Henter midlertidige stop fra localStorage
+function loadTempStops() {
     const savedTempStops = localStorage.getItem(TEMP_STOPS_KEY)
 
-    if (!savedTempStops){
+    if (!savedTempStops) {
         return []
     }
 
     return JSON.parse(savedTempStops)
 }
 
-    function clearTempStops(){
-        localStorage.removeItem(TEMP_STOPS_KEY)
-
+// Fjerner midlertidige stop fra localStorage
+function clearTempStops() {
+    localStorage.removeItem(TEMP_STOPS_KEY)
 }
