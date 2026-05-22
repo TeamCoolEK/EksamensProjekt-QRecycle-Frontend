@@ -1,5 +1,6 @@
 import { BASE_URL } from '../../config.js';
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
+import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
 
 export function initDriverDashboard() {
     renderDriverMap();
@@ -9,11 +10,16 @@ export function renderDriverExpenses() {
     renderDriverMap();
 }
 
-let map = null;
-let directionsService = null;
-let directionsRenderer = null;
-let collections = [];
-let tempIdCounter = 0;
+let map = null
+let directionsService = null
+let directionsRenderer = null
+let collections = []
+let tempIdCounter = 0
+let locationInterval = null
+let driverMarker = null
+let userPanned = false
+let driverPosition = null
+
 
 // Fast slutpunkt for ruten
 const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
@@ -62,9 +68,21 @@ function renderDriverMap() {
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
-
-                <!-- Opdater listen med nyt data ved at kalde fetchAndBuildRoute() funktionen -->
-                <button onclick="fetchAndBuildRoute()">🔄 Opdater listen</button>
+                
+                <!-- Live lokation knap -->
+                <button id="locationBtn" onclick="startTracking()" disabled>
+                📍 Henter GPS...
+                </button>
+                
+                <!-- Find mig knap — genaktiverer auto-center -->
+                <button id="followBtn" onclick="followDriver()" style="display:none;">
+               👀 Find mig
+                </button>
+                
+                <!-- Start rute knap — zoomer ind på chaufføren og beregner rute -->
+                <button id="routeBtn" onclick="startRoute()" style="display:none;">
+                 🚀 Start rute
+                </button>
 
                 <!-- Tilføj ny adresse manuelt -->
                 <div class="add-address">
@@ -106,21 +124,43 @@ function renderDriverMap() {
                 </div>
             </div>
         </div>
-    `;
+    `
+    window.initMap = initMap
+    window.toggleMenu = toggleMenu
+    window.fetchAndBuildRoute = fetchAndBuildRoute
+    window.addManualStop = addManualStop
+    window.removeStop = removeStop
+    window.onStopChecked = onStopChecked
+    window.confirmPickup = confirmPickup
+    window.closeModal = closeModal
+    window.doneManualStop = doneManualStop
+    window.startTracking = startTracking
+    window.stopTracking = stopTracking
+    window.addEventListener('beforeunload', stopTracking)
+    window.startPolling = startPolling
+    window.stopPolling = stopPolling
+    window.followDriver = followDriver
+    window.removeDriverMarker = removeDriverMarker
+    window.zoomToDriver = zoomToDriver
+    window.startRoute = startRoute
 
-    window.initMap = initMap;
-    window.toggleMenu = toggleMenu;
-    window.fetchAndBuildRoute = fetchAndBuildRoute;
-    window.addManualStop = addManualStop;
-    window.removeStop = removeStop;
-    window.onStopChecked = onStopChecked;
-    window.confirmPickup = confirmPickup;
-    window.closeModal = closeModal;
-    window.doneManualStop = doneManualStop;
 
-    setupDriverNavbarEvents();
+    loadGoogleMapsScript()
+}
 
-    loadGoogleMapsScript();
+// Zoomer ind på chaufføren — bruges ved start sporing og følg mig
+function zoomToDriver() {
+    if (driverMarker !== null) {
+        map.setCenter(driverMarker.getPosition())
+        map.setZoom(20)
+    }
+}
+
+function followDriver() {
+    userPanned = false
+    if (driverMarker !== null) {
+        map.setCenter(driverMarker.getPosition())
+    }
 }
 
 
@@ -180,10 +220,16 @@ async function initMap() {
     directionsRenderer.setMap(map);
     // Kobl rendereren til vores kort så ruten tegnes der
 
-    initAutocomplete();
+    // Deaktiver auto-center når brugeren panorerer manuelt
+    map.addListener('dragstart', () => {
+        userPanned = true
+    })
+
+    initAutocomplete()
 
     await fetchAndBuildRoute();
     // Hent afhentninger fra backend og byg ruten
+    checkLocationPermission()
 }
 
 async function fetchAndBuildRoute() {
@@ -210,9 +256,9 @@ async function fetchAndBuildRoute() {
 
     if (collections.length === 0) {
         // Hvis ingen aktive afhentninger, altså at listen er tom, vises denne besked
-        stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>';
-        directionsRenderer.set('directions', null);
-        return;
+        stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>'
+        document.getElementById('locationBtn').style.display = 'none'
+        return
     }
 
     renderStopList();
@@ -292,12 +338,31 @@ function calculateRoute() {
         return;
     }
 
-    const origin = addresses[0];
+    // Brug chaufføren position som startpunkt hvis sporing er aktiv
+    // Ellers brug første adresse i listen som før
+    const origin = driverPosition
+        ? { lat: driverPosition.lat, lng: driverPosition.lng }
+        : addresses[0]
 
-    const waypoints = addresses.slice(1).map(address => ({
-        location: address,
-        stopover: true
-    }));
+    if (addresses.length === 1 && !driverPosition) {
+        new google.maps.Geocoder().geocode({ address: addresses[0] }, (results, status) => {
+            if (status === 'OK') {
+                map.setCenter(results[0].geometry.location)
+                new google.maps.Marker({
+                    map,
+                    position: results[0].geometry.location,
+                    title: collections[0].businessName
+                })
+            }
+        })
+        return
+    }
+
+    // Alle adresser er waypoints når chaufføren position bruges som startpunkt
+    const destination = addresses[addresses.length - 1]
+    const waypoints = driverPosition
+        ? addresses.slice(0, -1).map(addr => ({ location: addr, stopover: true }))
+        : addresses.slice(1, -1).map(addr => ({ location: addr, stopover: true }))
 
     directionsService.route({
         origin: origin,
@@ -448,10 +513,11 @@ async function confirmPickup() {
     showSuccessEmoji();
 
     if (collections.length === 0) {
-        document.getElementById('stopList').innerHTML =
-            '<p>✅ Alle afhentninger afsluttet!</p>';
+        document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
+        directionsRenderer.set('directions', null)
+        window.stopTracking() // stop sporing og ryd position i backend
+        document.getElementById('locationBtn').style.display = 'none'
 
-        directionsRenderer.set('directions', null);
     } else {
         calculateRoute();
     }
@@ -483,6 +549,120 @@ function closeModal() {
 }
 
 function toggleMenu() {
+    const sidebar = document.getElementById('sidebar')
+    const overlay = document.getElementById('sidebarOverlay')
+    const isOpen = sidebar.classList.toggle('open')
+    overlay.classList.toggle('active', isOpen)
+
+}
+
+// Starter polling — henter chaufføren position fra backend hvert 10. sek.
+/*
+Polling er at frontend spørger backend "har du noget nyt ift. lokationen?" med et fast interval,
+som i vores tilfælde er 10 sekunder, uanset om der er nyt eller ej.
+ */
+function startPolling() {
+    // Kald med det samme første gang
+    pollLocation()
+    // Derefter hvert 10. sekund
+    locationInterval = setInterval(pollLocation, 10000)
+}
+
+// Selve poll-kaldet — udskilt så det kan kaldes både med det samme og via interval
+async function pollLocation() {
+    const response = await authFetch(`${BASE_URL}/driver/location`)
+
+    if (response.status === 401) {
+        stopPolling()
+        window.location.hash = '#/login'
+        return
+    }
+
+    if (response.status === 403) {
+        stopPolling()
+        alert('Du har ikke adgang til denne funktion.')
+        return
+    }
+
+    if (response.status === 404) {
+        stopPolling()
+        alert('Sporingen er afbrudt. Tryk start for at genoptage.')
+        return
+    }
+
+    const data = await response.json()
+    updateDriverMarker(data.latitude, data.longitude)
+}
+
+// Stopper polling
+function stopPolling() {
+    if (locationInterval !== null) {
+        clearInterval(locationInterval)
+        locationInterval = null
+    }
+}
+
+// Opdaterer eller opretter chaufføren markør på kortet
+function updateDriverMarker(latitude, longitude) {
+    if (!map) return
+
+    const position = { lat: latitude, lng: longitude }
+    driverPosition = position // gem chaufføren position
+
+    if (driverMarker === null) {
+        // Opret markør første gang
+        driverMarker = new google.maps.Marker({
+            position,
+            map,
+            title: 'Din position',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            }
+        })
+        // Zoom ind første gang markøren vises
+        map.setCenter(position)
+        map.setZoom(15)
+        calculateRoute() // genberegn ruten med chaufføren som startpunkt
+        // Vis rute-knap
+        document.getElementById('routeBtn').style.display = 'block'
+    } else {
+        driverMarker.setPosition(position)
+    }
+
+    if (!userPanned) {
+        map.setCenter(position)
+    }
+}
+
+// Fjerner chaufføren markør fra kortet
+function removeDriverMarker() {
+    if (driverMarker !== null) {
+        driverMarker.setMap(null)
+        driverMarker = null
+    }
+    driverPosition = null
+    const routeBtn = document.getElementById('routeBtn')
+    if (routeBtn) routeBtn.style.display = 'none'
+    calculateRoute()
+}
+
+// Zoomer ind på chaufføren og beregner rute fra chaufføren position
+function startRoute() {
+    userPanned = false
+    calculateRoute()
+    // Vent til ruten er beregnet og zoom derefter ind på chaufføren
+    setTimeout(() => {
+        if (driverMarker !== null) {
+            map.setCenter(driverMarker.getPosition())
+            map.setZoom(20)
+        }
+    }, 500)
+}
     const sidebar = document.getElementById('sidebar');
 
     const overlay = document.getElementById('sidebarOverlay');
