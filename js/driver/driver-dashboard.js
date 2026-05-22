@@ -16,6 +16,9 @@ let directionsService = null
 let directionsRenderer = null
 let collections = []
 let tempIdCounter = 0
+let locationInterval = null
+let driverMarker = null
+let userPanned = false
 
 
 function renderDriverMap() {
@@ -52,6 +55,11 @@ function renderDriverMap() {
                 <!-- Live lokation knap -->
                 <button id="locationBtn" onclick="startTracking()" disabled>
                 📍 Henter GPS...
+                </button>
+                
+                <!-- Følg mig knap — genaktiverer auto-center -->
+                <button id="followBtn" onclick="followDriver()" style="display:none;">
+               👀 Følg mig
                 </button>
 
                 <!-- Tilføj ny adresse manuelt -->
@@ -99,8 +107,29 @@ function renderDriverMap() {
     window.startTracking = startTracking
     window.stopTracking = stopTracking
     window.addEventListener('beforeunload', stopTracking)
+    window.startPolling = startPolling
+    window.stopPolling = stopPolling
+    window.followDriver = followDriver
+    window.removeDriverMarker = removeDriverMarker
+    window.zoomToDriver = zoomToDriver
+
 
     loadGoogleMapsScript()
+}
+
+// Zoomer ind på chaufføren — bruges ved start sporing og følg mig
+function zoomToDriver() {
+    if (driverMarker !== null) {
+        map.setCenter(driverMarker.getPosition())
+        map.setZoom(1)
+    }
+}
+
+function followDriver() {
+    userPanned = false
+    if (driverMarker !== null) {
+        map.setCenter(driverMarker.getPosition())
+    }
 }
 
 
@@ -152,6 +181,11 @@ async function initMap() {
     // Renderer til at tegne ruten på kortet
     directionsRenderer.setMap(map)
     // Kobl rendereren til vores kort så ruten tegnes der
+
+    // Deaktiver auto-center når brugeren panorerer manuelt
+    map.addListener('dragstart', () => {
+        userPanned = true
+    })
 
     initAutocomplete()
 
@@ -390,3 +424,89 @@ function toggleMenu() {
 
 }
 
+// Starter polling — henter chaufføren position fra backend hvert 10. sek.
+/*
+Polling er at frontend spørger backend "har du noget nyt ift. lokationen?" med et fast interval,
+som i vores tilfælde er 10 sekunder, uanset om der er nyt eller ej.
+ */
+function startPolling() {
+    // Kald med det samme første gang
+    pollLocation()
+    // Derefter hvert 10. sekund
+    locationInterval = setInterval(pollLocation, 10000)
+}
+
+// Selve poll-kaldet — udskilt så det kan kaldes både med det samme og via interval
+async function pollLocation() {
+    const response = await authFetch(`${BASE_URL}/driver/location`)
+
+    if (response.status === 401) {
+        stopPolling()
+        window.location.hash = '#/login'
+        return
+    }
+
+    if (response.status === 403) {
+        stopPolling()
+        alert('Du har ikke adgang til denne funktion.')
+        return
+    }
+
+    if (response.status === 404) {
+        stopPolling()
+        alert('Sporingen er afbrudt. Tryk start for at genoptage.')
+        return
+    }
+
+    const data = await response.json()
+    updateDriverMarker(data.latitude, data.longitude)
+}
+
+// Stopper polling
+function stopPolling() {
+    if (locationInterval !== null) {
+        clearInterval(locationInterval)
+        locationInterval = null
+    }
+}
+
+// Opdaterer eller opretter chaufføren markør på kortet
+function updateDriverMarker(latitude, longitude) {
+    if (!map) return
+
+    const position = { lat: latitude, lng: longitude }
+
+    if (driverMarker === null) {
+        // Opret markør første gang
+        driverMarker = new google.maps.Marker({
+            position,
+            map,
+            title: 'Din position',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            }
+        })
+        // Zoom ind første gang markøren vises
+        map.setCenter(position)
+        map.setZoom(15)
+    } else {
+        driverMarker.setPosition(position)
+    }
+
+    if (!userPanned) {
+        map.setCenter(position)
+    }
+}
+
+// Fjerner chaufføren markør fra kortet
+function removeDriverMarker() {
+    if (driverMarker !== null) {
+        driverMarker.setMap(null)
+        driverMarker = null
+    }
+}

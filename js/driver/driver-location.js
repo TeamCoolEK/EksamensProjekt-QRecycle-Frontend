@@ -37,34 +37,45 @@ export function startTracking() {
         (position) => {
             const { latitude, longitude } = position.coords
             sendLocation(latitude, longitude)
-
-            if (!isTracking) {
-                isTracking = true
-                btn.textContent = '⏹ Stop sporing'
-                btn.disabled = false
-            }
         },
         // GPS-tilladelse afvist eller utilgængelig
         () => {
             btn.textContent = '❌ Tillad lokation for at starte ruten'
             btn.disabled = true
             isTracking = false
+            document.getElementById('followBtn').style.display = 'none'
+            window.stopPolling()
         }
     )
+
+    // Start polling og opdater UI med det samme
+    // i stedet for at vente på første GPS-callback
+    isTracking = true
+    btn.textContent = '⏹ Stop sporing'
+    btn.disabled = false
+    document.getElementById('followBtn').style.display = 'block'
+    window.startPolling()
 }
 
-// Stopper GPS-sporing
+//Stopper sporingen
 export function stopTracking() {
     if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId)
         watchId = null
     }
     isTracking = false
+
     const btn = document.getElementById('locationBtn')
     if (btn) {
         btn.textContent = '📍 Start sporing'
         btn.disabled = false
     }
+
+    const followBtn = document.getElementById('followBtn')
+    if (followBtn) followBtn.style.display = 'none'
+
+    window.stopPolling()
+    window.removeDriverMarker() // fjerner markøren fra kortet
 }
 
 // Sender koordinater til Spring backend
