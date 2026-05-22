@@ -8,47 +8,79 @@ function renderDriverExpensePage() {
 
     document.getElementById("app").innerHTML = `
 
-        <h1>Registrer udgift</h1>
+        <!-- Navbar -->
+        <nav class="navbar">
 
-        <form id="expenseForm">
-
-            <input
-                id="expenseTitle"
-                type="text"
-                placeholder="Titel"
-            >
-
-            <input
-                id="expenseAmount"
-                type="number"
-                placeholder="Beløb"
-            >
-
-            <input
-                id="expenseReceipt"
-                type="file"
-                accept="image/*"
-            >
+            <span class="nav-title">
+                Registrer udgift
+            </span>
 
             <img
-                id="previewImage"
-                width="200"
-                style="display: none;"
+                src="img/logo.png"
+                class="nav-logo"
+                alt="Q Genbrug"
             >
 
-            <button type="submit">
-                Gem udgift
-            </button>
+        </nav>
 
-        </form>
+        <div class="page-container">
 
-        <p id="expenseMessage"></p>
+            <div class="business-actions">
+                <button id="backToDashboardBtn">
+                    Tilbage til dashboard
+                </button>
+            </div>
+
+            <h1>Registrer udgift</h1>
+
+            <form id="expenseForm">
+
+                <input
+                    id="expenseTitle"
+                    type="text"
+                    placeholder="Titel"
+                >
+
+                <input
+                    id="expenseAmount"
+                    type="number"
+                    placeholder="Beløb"
+                >
+
+                <input
+                    id="expenseReceipt"
+                    type="file"
+                    accept="image/*"
+                >
+
+                <img
+                    id="previewImage"
+                    width="200"
+                    style="display: none;"
+                >
+
+                <button type="submit">
+                    Gem udgift
+                </button>
+
+            </form>
+
+            <p id="expenseMessage"></p>
+
+        </div>
     `;
 
     setupExpenseEvents();
 }
 
 function setupExpenseEvents() {
+
+    document
+        .getElementById("backToDashboardBtn")
+        .addEventListener("click", function () {
+
+            window.location.hash = "#/driver/dashboard";
+        });
 
     document
         .getElementById("expenseForm")

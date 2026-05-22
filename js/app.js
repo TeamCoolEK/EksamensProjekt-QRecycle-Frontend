@@ -18,6 +18,8 @@ const routes = {
     //business routes
     '#/business/dashboard':   { roles: ['BUSINESS'],                  page: 'businessDashboard' },
     '#/admin/collections':    { roles: ['ADMIN'],                     page: 'adminCollections' },
+    '#/admin/statistics':     { roles: ['ADMIN'],                     page: 'adminStatistics'},
+    '#/admin/getExpenses':    { roles: ['ADMIN'],                     page: 'adminExpenses' }
 };
 
 // Default landing page per role
@@ -129,6 +131,10 @@ async function loadPage(page) {
         case 'adminCollections':
             const { initAdminCollections } = await import('./admin/admin-collections.js');
             initAdminCollections(content);
+            break;
+        case 'adminStatistics':
+            const { initAdminStatistics } = await import('./admin/admin-statistics.js');
+            initAdminStatistics(content);
             break;
         case 'unauthorized':
             content.innerHTML = '<h1>Access Denied</h1><p>You do not have permission to view this page.</p>';

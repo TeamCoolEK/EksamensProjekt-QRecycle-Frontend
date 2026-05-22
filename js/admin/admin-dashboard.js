@@ -1,5 +1,7 @@
 // imports
 import { BASE_URL } from '../../config.js';
+import { authFetch } from "../../utils.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminDashboard() {
     renderAdminDashboardPage();
@@ -10,6 +12,9 @@ function renderAdminDashboardPage() {
 
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Dashboard")}
+
 
         <h1>Admin dashboard</h1>
         <div>
@@ -32,7 +37,7 @@ function renderAdminDashboardPage() {
             </button>
 
             <!--indsættes som eventlistener under html!-->
-            <button id="statistik">
+            <button onclick="window.location.hash='#/admin/statistics'">
                 Statistik
             </button>
             
@@ -45,7 +50,7 @@ function renderAdminDashboardPage() {
                 Udgifter
             </button>
             
-            <button onclick="alert('Coming soon!')">
+            <button onclick="window.location.hash='#/driver/dashboard'">
                 Rute
             </button>
 
@@ -54,6 +59,8 @@ function renderAdminDashboardPage() {
         <p id="dashboardMessage"></p>
     `;
 
+    setupAdminNavbarEvents()
+
     // Henter data til dashboard
     loadDashboardData();
     document.getElementById("statistik").addEventListener("click", renderStatisticPage);
@@ -61,10 +68,8 @@ function renderAdminDashboardPage() {
 
 // Henter dashboard data fra backend
 function loadDashboardData() {
-    const token = localStorage.getItem('jwt')
-    fetch(BASE_URL + "/admin/dashboard", {
-        method: "GET",
-        headers: { 'Authorization': `${token}` } //Hvad betyder Bearer?
+    authFetch(BASE_URL + "/admin/dashboard", { //henter auth fra authFetch utils.js
+        method: "GET"
     })
 
         .then(res => {
