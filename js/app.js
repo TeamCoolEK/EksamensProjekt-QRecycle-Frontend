@@ -131,6 +131,10 @@ async function loadPage(page) {
             const { initAdminStatistics } = await import('./admin/admin-statistics.js');
             initAdminStatistics(content);
             break;
+        case 'adminExpenses':
+            const { initAdminExpenses } = await import('./admin/admin-get-expenses.js')
+            initAdminExpenses(content);
+            break;
         case 'unauthorized':
             content.innerHTML = '<h1>Access Denied</h1><p>You do not have permission to view this page.</p>';
             break;
