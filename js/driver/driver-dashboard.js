@@ -1,6 +1,7 @@
 import { BASE_URL } from '../../config.js';
 import { MAPS_API_KEY } from "../../config.secrets.js";
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
+import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
 
 export function initDriverDashboard() {
     renderDriverMap();
@@ -47,8 +48,11 @@ function renderDriverMap() {
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
-                <!-- Opdater listen med nyt data ved at kalde fetchAndBuildRoute() funktionen -->
-                <button onclick="fetchAndBuildRoute()">🔄 Opdater listen</button>
+                
+                <!-- Live lokation knap -->
+                <button id="locationBtn" onclick="startTracking()" disabled>
+                📍 Henter GPS...
+                </button>
 
                 <!-- Tilføj ny adresse manuelt -->
                 <div class="add-address">
@@ -92,6 +96,9 @@ function renderDriverMap() {
     window.confirmPickup = confirmPickup
     window.closeModal = closeModal
     window.doneManualStop = doneManualStop
+    window.startTracking = startTracking
+    window.stopTracking = stopTracking
+    window.addEventListener('beforeunload', stopTracking)
 
     loadGoogleMapsScript()
 }
@@ -150,7 +157,7 @@ async function initMap() {
 
     await fetchAndBuildRoute()
     // Hent afhentninger fra backend og byg ruten
-
+    checkLocationPermission()
 }
 
 
@@ -287,7 +294,6 @@ function addManualStop() {
     calculateRoute() //Genkaldes efter tilføjelse af nyt stop
 }
 
-
 // Fjern stop fra ruten uden at markere som afhentet
 function removeStop(collectionId) {
     collections = collections.filter(c => c.id !== collectionId)
@@ -381,5 +387,6 @@ function toggleMenu() {
     const overlay = document.getElementById('sidebarOverlay')
     const isOpen = sidebar.classList.toggle('open')
     overlay.classList.toggle('active', isOpen)
+
 }
 
