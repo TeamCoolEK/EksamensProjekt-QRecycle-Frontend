@@ -46,7 +46,7 @@ function renderAdminDashboardPage() {
                 Brugeradministration
             </button>
 
-            <button onclick="alert('Coming soon!')">
+            <button onclick="window.location.hash='#/admin/getExpenses'">
                 Udgifter
             </button>
             
@@ -59,11 +59,10 @@ function renderAdminDashboardPage() {
         <p id="dashboardMessage"></p>
     `;
 
-    setupAdminNavbarEvents()
+    setupAdminNavbarEvents();
 
-    // Henter data til dashboard
+// Henter data til dashboard
     loadDashboardData();
-    document.getElementById("statistik").addEventListener("click", renderStatisticPage);
 }
 
 // Henter dashboard data fra backend
