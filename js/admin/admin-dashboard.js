@@ -40,9 +40,10 @@ function renderAdminDashboardPage() {
             <button onclick="window.location.hash='#/admin/statistics'">
                 Statistik
             </button>
-
-            <button onclick="window.location.hash='#/admin/createUser'">
-                Opret bruger
+            
+            <!--QE-42 - QE-319 - knap til Admin til brugeradministration!-->
+            <button onclick="window.location.hash='#/admin/userList'">
+                Brugeradministration
             </button>
 
             <button onclick="window.location.hash='#/admin/getExpenses'">
@@ -76,26 +77,34 @@ function loadDashboardData() {
             if (!res.ok) {
                 throw new Error("Kunne ikke hente dashboard");
             }
-
             // Konverterer response til JSON
             return res.json();
         })
 
         .then(bagsReadyForPickup => {
-
             // Viser antal poser klar til afhentning
             document.getElementById("bagsReadyForPickup").textContent = bagsReadyForPickup + " poser";
         })
 
         .catch(error => {
-
             // Logger fejl i console
             console.log(error);
-
             // Viser fejl på dashboardet
             document.getElementById("bagsReadyForPickup").textContent = "Fejl";
-            showDashboardMessage("Kunne ikke hente dashboard data");
+            showDashboardMessage("Kunne ikke hente data");
         });
+}
+
+// Renderer midlertidig statistikside
+function renderStatisticPage() {
+    // Indsætter HTML i app containeren
+    document.getElementById("app").innerHTML = `
+        <h1>Statistik</h1>
+        <p>Statistikside kommer senere</p>
+        <button onclick="renderAdminDashboardPage()">
+            Tilbage til dashboard
+        </button>
+    `;
 }
 
 // Viser besked til brugeren
