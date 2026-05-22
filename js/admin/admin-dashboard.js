@@ -64,7 +64,7 @@ function loadDashboardData() {
     const token = localStorage.getItem('jwt')
     fetch(BASE_URL + "/admin/dashboard", {
         method: "GET",
-        headers: { 'Authorization': `Bearer ${token}` } //Hvad betyder Bearer?
+        headers: { 'Authorization': `${token}` } //Hvad betyder Bearer?
     })
 
         .then(res => {
