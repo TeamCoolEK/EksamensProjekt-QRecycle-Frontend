@@ -222,6 +222,7 @@ async function fetchAndBuildRoute() {
     if (collections.length === 0) {
         // Hvis ingen aktive afhentninger, altså at listen er tom, vises denne besked
         stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>'
+        document.getElementById('locationBtn').style.display = 'none'
         return
     }
 
@@ -403,6 +404,9 @@ async function confirmPickup() {
     if (collections.length === 0) {
         document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
         directionsRenderer.set('directions', null)
+        window.stopTracking() // stop sporing og ryd position i backend
+        document.getElementById('locationBtn').style.display = 'none'
+
     } else {
         calculateRoute()
     }
