@@ -1,3 +1,4 @@
+/* global google */
 import { BASE_URL } from '../../config.js';
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
@@ -143,6 +144,7 @@ function renderDriverMap() {
     window.removeDriverMarker = removeDriverMarker
     window.zoomToDriver = zoomToDriver
     window.startRoute = startRoute
+    window.updateDriverMarker = updateDriverMarker
 
     setupDriverNavbarEvents()
 
@@ -166,7 +168,8 @@ function followDriver() {
 
 
 async function loadGoogleMapsScript() {
-    const { apiKey } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
+    const { apiKey, mapId } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
+    window._mapId = mapId //Map id til at configuere maps api key til at rotere
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
@@ -208,8 +211,11 @@ async function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 55.6761, lng: 12.5683 },
         // Centrer kortet på København
-        zoom: 11
+        zoom: 11,
         // Zoom niveau — højere tal = tættere på
+        mapId: window._mapId,
+        // mapId til at rotere kortet
+        rotateControl: true,
     });
 
     directionsService = new google.maps.DirectionsService();
@@ -605,11 +611,16 @@ function stopPolling() {
 }
 
 // Opdaterer eller opretter chaufføren markør på kortet
-function updateDriverMarker(latitude, longitude) {
+function updateDriverMarker(latitude, longitude, heading) { //tilføjet heading, til at styre rotation
     if (!map) return
 
     const position = { lat: latitude, lng: longitude }
     driverPosition = position // gem chaufføren position
+
+    // Rotate map to match driving direction
+    if (heading !== null && heading !== undefined) {
+        map.setHeading(heading)  // 👈 rotates the map
+    }
 
     if (driverMarker === null) {
         // Opret markør første gang
@@ -623,7 +634,8 @@ function updateDriverMarker(latitude, longitude) {
                 fillColor: '#4285F4',
                 fillOpacity: 1,
                 strokeColor: '#ffffff',
-                strokeWeight: 2
+                strokeWeight: 2,
+                rotation: heading ?? 0 //rotere kort til live tracker
             }
         })
         // Zoom ind første gang markøren vises
@@ -634,6 +646,15 @@ function updateDriverMarker(latitude, longitude) {
         document.getElementById('routeBtn').style.display = 'block'
     } else {
         driverMarker.setPosition(position)
+        driverMarker.setIcon({               // Sætter icon til arrow
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 5,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+            rotation: 0
+        })
     }
 
     if (!userPanned) {

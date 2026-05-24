@@ -35,8 +35,9 @@ export function startTracking() {
     watchId = navigator.geolocation.watchPosition(
         // GPS-tilladelse givet
         async (position) => {
-            const { latitude, longitude } = position.coords
+            const { latitude, longitude , heading} = position.coords
             await sendLocation(latitude, longitude)
+            window.updateDriverMarker(latitude, longitude, heading)
         },
         // GPS-tilladelse afvist eller utilgængelig
         () => {
