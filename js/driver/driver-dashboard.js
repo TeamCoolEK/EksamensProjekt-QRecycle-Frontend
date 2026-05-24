@@ -169,7 +169,7 @@ function followDriver() {
 
 async function loadGoogleMapsScript() {
     const { apiKey, mapId } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
-    window._mapId = mapId //Map id til at configuere maps api key til at rotere
+    window._mapId = mapId //Map id til at sætte map type til vector, for at tillade rotation af kort (live tracking)
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
@@ -213,8 +213,8 @@ async function initMap() {
         // Centrer kortet på København
         zoom: 11,
         // Zoom niveau — højere tal = tættere på
-        mapId: window._mapId,
-        // mapId til at rotere kortet
+        mapId: window._mapId, //Henter mapId fra backend
+        // mapId til at enable vector map til rotation af kort
         rotateControl: true,
     });
 
@@ -611,15 +611,15 @@ function stopPolling() {
 }
 
 // Opdaterer eller opretter chaufføren markør på kortet
-function updateDriverMarker(latitude, longitude, heading) { //tilføjet heading, til at styre rotation
+function updateDriverMarker(latitude, longitude, heading) { //henter heading af live tracking, til at styre rotation
     if (!map) return
 
     const position = { lat: latitude, lng: longitude }
     driverPosition = position // gem chaufføren position
 
-    // Rotate map to match driving direction
+    // rotere kort til at matche drivers retning
     if (heading !== null && heading !== undefined) {
-        map.setHeading(heading)  // 👈 rotates the map
+        map.setHeading(heading)  // Rotere kortet
     }
 
     if (driverMarker === null) {
@@ -634,8 +634,7 @@ function updateDriverMarker(latitude, longitude, heading) { //tilføjet heading,
                 fillColor: '#4285F4',
                 fillOpacity: 1,
                 strokeColor: '#ffffff',
-                strokeWeight: 2,
-                rotation: heading ?? 0 //rotere kort til live tracker
+                strokeWeight: 2
             }
         })
         // Zoom ind første gang markøren vises
@@ -646,14 +645,13 @@ function updateDriverMarker(latitude, longitude, heading) { //tilføjet heading,
         document.getElementById('routeBtn').style.display = 'block'
     } else {
         driverMarker.setPosition(position)
-        driverMarker.setIcon({               // Sætter icon til arrow
-            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            scale: 5,
+        driverMarker.setIcon({
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
             fillColor: '#4285F4',
             fillOpacity: 1,
             strokeColor: '#ffffff',
-            strokeWeight: 2,
-            rotation: 0
+            strokeWeight: 2
         })
     }
 

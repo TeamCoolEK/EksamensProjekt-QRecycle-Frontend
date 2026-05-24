@@ -37,7 +37,7 @@ export function startTracking() {
         async (position) => {
             const { latitude, longitude , heading} = position.coords
             await sendLocation(latitude, longitude)
-            window.updateDriverMarker(latitude, longitude, heading)
+            window.updateDriverMarker(latitude, longitude, heading) // Heading fortæller hvilken grad gps er peget imod
         },
         // GPS-tilladelse afvist eller utilgængelig
         () => {
