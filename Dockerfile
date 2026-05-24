@@ -14,3 +14,4 @@ COPY css/ /usr/share/nginx/html/css/
 # Exposer serveren til port 80 så man kan tilgå den
 # Vi åbner kun frontenden op til offentligheden (Reverse proxy)... port 8080 er reserveret til backend (privat)
 EXPOSE 80
+
