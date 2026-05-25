@@ -4,26 +4,26 @@ export function renderAdminNavbar(title = "Admin") {
 
         <nav class="navbar admin-navbar">
 
-            <span class="nav-title">
-                ${title}
-            </span>
-
-            <div class="admin-navbar-right">
-
+            <div class="admin-navbar-left">
                 <img
                     src="img/logo.png"
                     class="nav-logo admin-logo-btn"
                     id="adminDashboardBtn"
                     alt="Dashboard"
                 >
+            </div>
 
+            <span class="nav-title">
+                ${title}
+            </span>
+
+            <div class="admin-navbar-right">
                 <button
                     id="logoutBtn"
                     class="logout-btn"
                 >
                     Log ud
                 </button>
-
             </div>
 
         </nav>

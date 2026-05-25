@@ -3,6 +3,7 @@
 // QE-42: user-list.js tilføjet - Admin kan se alle brugere
 // QE-319: Admin-side til brugeradministration
 import { BASE_URL } from "../../config.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminUserList() {
     renderAdminUserListPage();
@@ -12,6 +13,8 @@ export function initAdminUserList() {
 function renderAdminUserListPage() {
 
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Opret virksomhed")}
     
         <h1>Brugeradministration</h1>
        
@@ -46,10 +49,13 @@ function renderAdminUserListPage() {
 
         <div id="editUserContainer"></div>
     `;
+    setupAdminNavbarEvents();
 
     setupPageEvents();
     // QE-324: Starter fetch til backend
     loadAllUsers();
+
+
 }
 
 // Setup navigation events

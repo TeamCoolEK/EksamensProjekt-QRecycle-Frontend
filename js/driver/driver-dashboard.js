@@ -27,6 +27,9 @@ const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
 const TEMP_STOPS_KEY = "driverTempStops"
 
 function renderDriverMap() {
+    document.body.classList.add('driver-map-page'); //Gør siden fixed, så man ikke kan scrolle unødvendigt
+    document.documentElement.classList.add('driver-map-page'); //-..-
+
     const app = document.getElementById('app');
 
     app.innerHTML = `
@@ -59,10 +62,10 @@ function renderDriverMap() {
             <div class="sidebar" id="sidebar">
 
                 <!-- Sidebar header med lukkeknap -->
-                <div class="sidebar-header">
-                    <span>Luk sidepanel</span>
-                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
-                </div>
+<!--                <div class="sidebar-header">-->
+<!--                    <span>Luk sidepanel</span>-->
+<!--                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>-->
+<!--                </div>-->
 
                 <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend. -->
                 <div id="stopList">
@@ -218,10 +221,19 @@ async function initMap() {
         rotateControl: true,
     });
 
-    directionsService = new google.maps.DirectionsService();
-    // Service til at beregne ruter mellem adresser
+    window._map = map //bruges til at teste rotation i map
 
-    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsService = new google.maps.DirectionsService();
+    // Service til at beregne ruter mellem adresser, med tykkere blå linjer
+
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        polylineOptions: {
+            strokeColor: '#1A73E8',    // Mere BLÅ
+                strokeWeight: 10,      // Tykkere linje
+                strokeOpacity: 0.9
+        },
+        suppressMarkers: false
+    });
     // Renderer til at tegne ruten på kortet
 
     directionsRenderer.setMap(map);
@@ -281,7 +293,7 @@ function renderStopList() {
 
         const buttons = isManual
             ? `
-                <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
+                <!-- <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button> -->
                 <button class="pickup-btn done-btn" onclick="doneManualStop('${c.id}')">Done</button>
             `
             : `
@@ -307,7 +319,7 @@ function renderStopList() {
 
                 </div>
 
-                <button class="remove-btn" onclick="removeStop('${c.id}')">×</button>
+                <!-- <button class="remove-btn" onclick="removeStop('${c.id}')">×</button> -->
 
             </div>
         `;
@@ -646,7 +658,7 @@ function updateDriverMarker(latitude, longitude, heading) { //henter heading af 
     } else {
         driverMarker.setPosition(position)
         driverMarker.setIcon({
-            path: google.maps.SymbolPath.CIRCLE,
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
             scale: 10,
             fillColor: '#4285F4',
             fillOpacity: 1,
@@ -680,7 +692,8 @@ function startRoute() {
     setTimeout(() => {
         if (driverMarker !== null) {
             map.setCenter(driverMarker.getPosition())
-            map.setZoom(20)
+            map.setZoom(17)      //Zoom, kan leges med men personlig preference er 17
+            map.setTilt(67.5)    //Tilter kortet 67.5 grader (maks tilt, best til iphone)
         }
     }, 500)
 }
