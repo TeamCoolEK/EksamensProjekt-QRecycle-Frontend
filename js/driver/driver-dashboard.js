@@ -171,8 +171,8 @@ function followDriver() {
 
 
 async function loadGoogleMapsScript() {
-    const { apiKey, mapId } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
-    window._mapId = mapId //Map id til at sætte map type til vector, for at tillade rotation af kort (live tracking)
+    const { apiKey } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
+    window._mapId = '53390b484488fad291cb474f' //Map id til at sætte map type til vector, for at tillade rotation af kort (live tracking)
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
