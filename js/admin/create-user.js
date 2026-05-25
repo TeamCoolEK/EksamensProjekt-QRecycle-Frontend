@@ -11,6 +11,7 @@ export function renderAdminUserPage() {
 
     document.getElementById("app").innerHTML = `
 
+<<<<<<< HEAD
         ${renderAdminNavbar("Opret bruger")}
         
         <div class="business-actions">
@@ -18,6 +19,9 @@ export function renderAdminUserPage() {
                 Tilbage til brugerliste
             </button>
         </div>
+=======
+        ${renderAdminNavbar("Bruger")}
+>>>>>>> 7dade4d6e6bc8a041bc80c093b3ac1b59576a232
 
         <h1>Opret bruger</h1>
 

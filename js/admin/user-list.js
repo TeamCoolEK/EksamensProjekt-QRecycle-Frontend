@@ -1,7 +1,11 @@
 // admin/user-list.js
 
 import { BASE_URL } from "../../config.js";
+<<<<<<< HEAD
 import { initCreateUser } from "./create-user.js";
+=======
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
+>>>>>>> 7dade4d6e6bc8a041bc80c093b3ac1b59576a232
 
 export function initAdminUserList() {
     renderAdminUserListPage();
@@ -10,6 +14,8 @@ export function initAdminUserList() {
 function renderAdminUserListPage() {
 
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Opret virksomhed")}
     
         <h1>Brugeradministration</h1>
        
@@ -69,9 +75,12 @@ function renderAdminUserListPage() {
     </div>
 </div>
     `;
+    setupAdminNavbarEvents();
 
     setupPageEvents();
     loadAllUsers();
+
+
 }
 
 function setupPageEvents() {

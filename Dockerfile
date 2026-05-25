@@ -10,7 +10,9 @@ COPY utils.js /usr/share/nginx/html/
 COPY index.html /usr/share/nginx/html/
 COPY js/ /usr/share/nginx/html/js/
 COPY css/ /usr/share/nginx/html/css/
+COPY img/ /usr/share/nginx/html/img/
 
 # Exposer serveren til port 80 så man kan tilgå den
 # Vi åbner kun frontenden op til offentligheden (Reverse proxy)... port 8080 er reserveret til backend (privat)
 EXPOSE 80
+

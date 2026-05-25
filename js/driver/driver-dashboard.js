@@ -1,3 +1,4 @@
+/* global google */
 import { BASE_URL } from '../../config.js';
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
@@ -26,6 +27,9 @@ const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
 const TEMP_STOPS_KEY = "driverTempStops"
 
 function renderDriverMap() {
+    document.body.classList.add('driver-map-page'); //Gør siden fixed, så man ikke kan scrolle unødvendigt
+    document.documentElement.classList.add('driver-map-page'); //-..-
+
     const app = document.getElementById('app');
 
     app.innerHTML = `
@@ -58,10 +62,10 @@ function renderDriverMap() {
             <div class="sidebar" id="sidebar">
 
                 <!-- Sidebar header med lukkeknap -->
-                <div class="sidebar-header">
-                    <span>Luk sidepanel</span>
-                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
-                </div>
+<!--                <div class="sidebar-header">-->
+<!--                    <span>Luk sidepanel</span>-->
+<!--                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>-->
+<!--                </div>-->
 
                 <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend. -->
                 <div id="stopList">
@@ -143,6 +147,7 @@ function renderDriverMap() {
     window.removeDriverMarker = removeDriverMarker
     window.zoomToDriver = zoomToDriver
     window.startRoute = startRoute
+    window.updateDriverMarker = updateDriverMarker
 
     setupDriverNavbarEvents()
 
@@ -167,6 +172,7 @@ function followDriver() {
 
 async function loadGoogleMapsScript() {
     const { apiKey } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
+    window._mapId = '53390b484488fad291cb474f' //Map id til at sætte map type til vector, for at tillade rotation af kort (live tracking)
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
@@ -208,14 +214,26 @@ async function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 55.6761, lng: 12.5683 },
         // Centrer kortet på København
-        zoom: 11
+        zoom: 11,
         // Zoom niveau — højere tal = tættere på
+        mapId: window._mapId, //Henter mapId fra backend
+        // mapId til at enable vector map til rotation af kort
+        rotateControl: true,
     });
 
-    directionsService = new google.maps.DirectionsService();
-    // Service til at beregne ruter mellem adresser
+    window._map = map //bruges til at teste rotation i map
 
-    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsService = new google.maps.DirectionsService();
+    // Service til at beregne ruter mellem adresser, med tykkere blå linjer
+
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        polylineOptions: {
+            strokeColor: '#1A73E8',    // Mere BLÅ
+                strokeWeight: 10,      // Tykkere linje
+                strokeOpacity: 0.9
+        },
+        suppressMarkers: false
+    });
     // Renderer til at tegne ruten på kortet
 
     directionsRenderer.setMap(map);
@@ -275,7 +293,7 @@ function renderStopList() {
 
         const buttons = isManual
             ? `
-                <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
+                <!-- <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button> -->
                 <button class="pickup-btn done-btn" onclick="doneManualStop('${c.id}')">Done</button>
             `
             : `
@@ -301,7 +319,7 @@ function renderStopList() {
 
                 </div>
 
-                <button class="remove-btn" onclick="removeStop('${c.id}')">×</button>
+                <!-- <button class="remove-btn" onclick="removeStop('${c.id}')">×</button> -->
 
             </div>
         `;
@@ -605,11 +623,16 @@ function stopPolling() {
 }
 
 // Opdaterer eller opretter chaufføren markør på kortet
-function updateDriverMarker(latitude, longitude) {
+function updateDriverMarker(latitude, longitude, heading) { //henter heading af live tracking, til at styre rotation
     if (!map) return
 
     const position = { lat: latitude, lng: longitude }
     driverPosition = position // gem chaufføren position
+
+    // rotere kort til at matche drivers retning
+    if (heading !== null && heading !== undefined) {
+        map.setHeading(heading)  // Rotere kortet
+    }
 
     if (driverMarker === null) {
         // Opret markør første gang
@@ -634,6 +657,14 @@ function updateDriverMarker(latitude, longitude) {
         document.getElementById('routeBtn').style.display = 'block'
     } else {
         driverMarker.setPosition(position)
+        driverMarker.setIcon({
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 10,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+        })
     }
 
     if (!userPanned) {
@@ -661,7 +692,8 @@ function startRoute() {
     setTimeout(() => {
         if (driverMarker !== null) {
             map.setCenter(driverMarker.getPosition())
-            map.setZoom(20)
+            map.setZoom(17)      //Zoom, kan leges med men personlig preference er 17
+            map.setTilt(67.5)    //Tilter kortet 67.5 grader (maks tilt, best til iphone)
         }
     }, 500)
 }
