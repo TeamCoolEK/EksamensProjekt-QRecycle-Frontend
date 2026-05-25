@@ -1,5 +1,31 @@
-/*Basic general styling*/
+/* Admin Dashboard nav tabel - ingen header */
+.dashboard-nav-table {
+    margin-top: 10px;
+}
 
+.dashboard-nav-table td {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--qr-dark);
+    text-align: center;
+}
+
+.dashboard-nav-table th {
+    text-align: center;
+}
+
+/* Fixer dashboard og tabeller på telefon */
+@media (max-width: 800px) {
+    .dashboard-nav-table {
+        display: table;
+        overflow-x: unset;
+        margin-left: 12px;
+        margin-right: 12px;
+        width: calc(100% - 24px);
+    }
+}
+
+/*Basic general styling*/
 * {
     margin: 0;
     padding: 0;

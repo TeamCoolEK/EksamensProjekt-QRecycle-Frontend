@@ -218,6 +218,8 @@ async function initMap() {
         rotateControl: true,
     });
 
+    window._map = map //bruges til at teste rotation i map
+
     directionsService = new google.maps.DirectionsService();
     // Service til at beregne ruter mellem adresser
 
@@ -646,7 +648,7 @@ function updateDriverMarker(latitude, longitude, heading) { //henter heading af 
     } else {
         driverMarker.setPosition(position)
         driverMarker.setIcon({
-            path: google.maps.SymbolPath.CIRCLE,
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
             scale: 10,
             fillColor: '#4285F4',
             fillOpacity: 1,
@@ -680,7 +682,8 @@ function startRoute() {
     setTimeout(() => {
         if (driverMarker !== null) {
             map.setCenter(driverMarker.getPosition())
-            map.setZoom(20)
+            map.setZoom(17)      //Zoom, kan leges med men personlig preference er 17
+            map.setTilt(67.5)    //Tilter kortet 67.5 grader (maks tilt, best til iphone)
         }
     }, 500)
 }
