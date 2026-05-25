@@ -55,8 +55,16 @@ function renderAdminDashboardPage() {
 
     setupAdminNavbarEvents();
 
-// Henter data til dashboard
+    // renser driver dashboard body og html class hvis admin retunerer til admin dashboard fra driver dashboard
+    unmountDriverMap();
+
+    // Henter data til dashboard
     loadDashboardData();
+}
+// cleanup af driverMapBody så man kan scrolle på admin dashboard
+function unmountDriverMap() {
+    document.body.classList.remove('driver-map-page');
+    document.documentElement.classList.remove('driver-map-page');
 }
 
 // Henter dashboard data fra backend
