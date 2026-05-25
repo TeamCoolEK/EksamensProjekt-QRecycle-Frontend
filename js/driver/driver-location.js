@@ -6,12 +6,15 @@ let isTracking = false
 
 // Tjekker GPS-tilladelse når siden loader og aktiverer knappen
 export function checkLocationPermission() {
+    console.log('checkLocationPermission called')
     if (!navigator.geolocation) {
+        console.log('geolocation not supported')
         document.getElementById('locationBtn').textContent = '❌ GPS ikke understøttet'
         return
     }
 
     navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        console.log('permission state:', result.state)
         const btn = document.getElementById('locationBtn')
         if (result.state === 'denied') {
             btn.textContent = '❌ Tillad lokation for at starte ruten'
@@ -25,6 +28,7 @@ export function checkLocationPermission() {
 
 // Starter GPS-sporing — kaldes når chaufføren trykker på knappen
 export function startTracking() {
+    console.log('startTracking called')
     const btn = document.getElementById('locationBtn')
 
     if (isTracking) {
@@ -35,9 +39,14 @@ export function startTracking() {
     watchId = navigator.geolocation.watchPosition(
         // GPS-tilladelse givet
         async (position) => {
+            console.log('position fired', position.coords)
             const { latitude, longitude , heading} = position.coords
             console.log('heading:', heading)
-            await sendLocation(latitude, longitude)
+            try {
+                await sendLocation(latitude, longitude)
+            } catch (err) {
+                console.log('sendLocation failed:', err)
+            }
             window.updateDriverMarker(latitude, longitude, heading) // Heading fortæller hvilken grad gps er peget imod
         },
         // GPS-tilladelse afvist eller utilgængelig
