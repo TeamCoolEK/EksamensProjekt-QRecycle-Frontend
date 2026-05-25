@@ -17,52 +17,54 @@ function renderAdminDashboardPage() {
 
 
         <h1>Admin dashboard</h1>
-        <div>
-            <h2>Poser klar til afhentning</h2>
-            <p>
-                Antal poser:
-                <span id="bagsReadyForPickup">Indlæser...</span>
-            </p>
+        
+        <div class="business-actions">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                <span style="font-size: 14px; color: var(--qr-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Poser klar til afhentning</span>
+                <span id="bagsReadyForPickup" style="font-size: 32px; font-weight: 800; color: var(--qr-green);">Indlæser...</span>
+            </div>
         </div>
 
-        <div>
+        <h2>Navigation</h2>
 
-            <!--onclick referere til routen, som loader den side der skal loades fra app.js (ctrl klik routen)-->
-            <button onclick="window.location.hash='#/admin/businessList'">
-                Virksomhedsadministration
-            </button>
-            
-            <button onclick="window.location.hash='#/admin/collections'">
-                 Afhentninger
-            </button>
-
-            <!--indsættes som eventlistener under html!-->
-            <button onclick="window.location.hash='#/admin/statistics'">
-                Statistik
-            </button>
-
-            <button onclick="window.location.hash='#/admin/createUser'">
-                Opret bruger
-            </button>
-
-            <button onclick="alert('Coming soon!')">
-                Udgifter
-            </button>
-            
-            <button onclick="window.location.hash='#/driver/dashboard'">
-                Rute
-            </button>
-
-        </div>
+        <table class="dashboard-nav-table">
+            <tbody>
+                <tr class="clickable-row" onclick="window.location.hash='#/admin/businessList'">
+                    <td>Virksomhedsadministration</td>
+                </tr>
+                <tr class="clickable-row" onclick="window.location.hash='#/admin/collections'">
+                    <td>Afhentninger</td>
+                </tr>
+                <tr class="clickable-row" onclick="window.location.hash='#/admin/statistics'">
+                    <td>Statistik</td>
+                </tr>
+                <tr class="clickable-row" onclick="window.location.hash='#/admin/userList'">
+                    <td>Brugeradministration</td>
+                </tr>
+                <tr class="clickable-row" onclick="window.location.hash='#/admin/getExpenses'">
+                    <td>Udgifter</td>
+                </tr>
+                <tr class="clickable-row" onclick="window.location.hash='#/driver/dashboard'">
+                    <td>Rute plan</td>
+                </tr>
+            </tbody>
+        </table>
 
         <p id="dashboardMessage"></p>
     `;
 
-    setupAdminNavbarEvents()
+    setupAdminNavbarEvents();
+
+    // renser driver dashboard body og html class hvis admin retunerer til admin dashboard fra driver dashboard
+    unmountDriverMap();
 
     // Henter data til dashboard
     loadDashboardData();
-    document.getElementById("statistik").addEventListener("click", renderStatisticPage);
+}
+// cleanup af driverMapBody så man kan scrolle på admin dashboard
+function unmountDriverMap() {
+    document.body.classList.remove('driver-map-page');
+    document.documentElement.classList.remove('driver-map-page');
 }
 
 // Henter dashboard data fra backend
@@ -77,26 +79,34 @@ function loadDashboardData() {
             if (!res.ok) {
                 throw new Error("Kunne ikke hente dashboard");
             }
-
             // Konverterer response til JSON
             return res.json();
         })
 
         .then(bagsReadyForPickup => {
-
             // Viser antal poser klar til afhentning
             document.getElementById("bagsReadyForPickup").textContent = bagsReadyForPickup + " poser";
         })
 
         .catch(error => {
-
             // Logger fejl i console
             console.log(error);
-
             // Viser fejl på dashboardet
             document.getElementById("bagsReadyForPickup").textContent = "Fejl";
-            showDashboardMessage("Kunne ikke hente dashboard data");
+            showDashboardMessage("Kunne ikke hente data");
         });
+}
+
+// Renderer midlertidig statistikside
+function renderStatisticPage() {
+    // Indsætter HTML i app containeren
+    document.getElementById("app").innerHTML = `
+        <h1>Statistik</h1>
+        <p>Statistikside kommer senere</p>
+        <button onclick="renderAdminDashboardPage()">
+            Tilbage til dashboard
+        </button>
+    `;
 }
 
 // Viser besked til brugeren

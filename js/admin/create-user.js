@@ -11,7 +11,7 @@ export function renderAdminUserPage() {
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Statestik")}
+        ${renderAdminNavbar("Bruger")}
 
         <h1>Opret bruger</h1>
 

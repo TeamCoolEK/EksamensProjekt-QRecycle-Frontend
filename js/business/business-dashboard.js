@@ -7,34 +7,35 @@ export function initBusinessDashboard() {
 
 //Renderer siden til markering af pant som klar//
 function renderBusinessPickupPage() {
+
     document.getElementById("app").innerHTML = `
 
     <!-- Navbar -->
-    <nav class="navbar business-navbar">
+<nav class="navbar business-navbar">
 
-        <span class="nav-title">
-            Virksomhed
-        </span>
+    <div class="business-navbar-left">
+        <img
+            src="img/logo.png"
+            class="nav-logo business-logo-btn"
+            id="businessLogoBtn"
+            alt="Q Genbrug"
+        >
+    </div>
 
-        <div class="business-navbar-actions">
+    <span class="nav-title">
+        Velkommen
+    </span>
 
-            <img
-                src="img/logo.png"
-                class="nav-logo business-logo-btn"
-                id="businessLogoBtn"
-                alt="Q Genbrug"
-            >
+    <div class="business-navbar-right">
+        <button
+            id="businessLogoutBtn"
+            class="logout-btn"
+        >
+            Log ud
+        </button>
+    </div>
 
-            <button
-                id="businessLogoutBtn"
-                class="logout-btn"
-            >
-                Log ud
-            </button>
-
-        </div>
-
-    </nav>
+</nav>
 
     <div class="page-container">
 

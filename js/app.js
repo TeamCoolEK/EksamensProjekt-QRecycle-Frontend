@@ -11,6 +11,7 @@ const routes = {
     '#/admin/businessList':   { roles: ['ADMIN'],                     page: 'businessList' },
     '#/admin/createBusiness': { roles: ['ADMIN'],                     page: 'createBusiness' },
     '#/admin/createUser':     { roles: ['ADMIN'],                     page: 'createUser' },
+    '#/admin/userList':       { roles: ['ADMIN'],                     page: 'userList' },
     //driver routes
     '#/driver/dashboard':     { roles: ['ADMIN', 'DRIVER'],           page: 'driverDashboard' },
     '#/driver/createExpenses':{ roles: ['ADMIN', 'DRIVER'],           page: 'createExpenses'},
@@ -101,6 +102,10 @@ async function loadPage(page) {
             const { initCreateUser } = await import('./admin/create-user.js');
             initCreateUser(content);
             break;
+        case 'userList':
+            const { initAdminUserList } = await import('./admin/user-list.js');
+            initAdminUserList(content);
+            break;
         case 'createBusiness':
             const { initCreateBusiness } = await import('./admin/create-business.js');
             initCreateBusiness(content);
@@ -130,6 +135,10 @@ async function loadPage(page) {
         case 'adminStatistics':
             const { initAdminStatistics } = await import('./admin/admin-statistics.js');
             initAdminStatistics(content);
+            break;
+        case 'adminExpenses':
+            const { initAdminExpenses } = await import('./admin/admin-get-expenses.js')
+            initAdminExpenses(content);
             break;
         case 'unauthorized':
             content.innerHTML = '<h1>Access Denied</h1><p>You do not have permission to view this page.</p>';

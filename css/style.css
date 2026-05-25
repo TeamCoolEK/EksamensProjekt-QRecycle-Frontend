@@ -1,5 +1,31 @@
-/*Basic general styling*/
+/* Admin Dashboard nav tabel - ingen header */
+.dashboard-nav-table {
+    margin-top: 10px;
+}
 
+.dashboard-nav-table td {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--qr-dark);
+    text-align: center;
+}
+
+.dashboard-nav-table th {
+    text-align: center;
+}
+
+/* Fixer dashboard og tabeller på telefon */
+@media (max-width: 800px) {
+    .dashboard-nav-table {
+        display: table;
+        overflow-x: unset;
+        margin-left: 12px;
+        margin-right: 12px;
+        width: calc(100% - 24px);
+    }
+}
+
+/*Basic general styling*/
 * {
     margin: 0;
     padding: 0;
@@ -15,11 +41,22 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* fixer driverdashboard, så man ikke kan scrolle på siden */
+body.driver-map-page {
+    height: 100%;
+    overflow: hidden; /* example */
+}
+
+html.driver-map-page {
+    height: 100%;
+    overflow: hidden;
+}
+
 #app {
     max-width: 100%;
     margin: 0;
     padding: 0;
-    min-height: 100vh;
+    height: 100vh;
 }
 
 /* Pop-up til antal poser */
@@ -350,11 +387,15 @@ button:disabled {
     padding: 0.75rem 1rem;
     background: rgb(30, 41, 59);
     color: white;
+    position: sticky;
+    top: 0;
 }
 
 .nav-title {
     font-size: 1.2rem;
     font-weight: bold;
+    flex: 1;
+    text-align: center;
 }
 
 .menu-btn {
@@ -371,6 +412,8 @@ button:disabled {
 .layout {
     display: flex;
     height: calc(100vh - 56px);
+    overflow: hidden;
+    position: relative;
 }
 
 /* Sidebar */
@@ -486,6 +529,8 @@ button:disabled {
 /* Kort */
 #map {
     flex: 1;
+    min-width: 0;     /* 👈 prevents flex overflow */
+    min-height: 0;    /* 👈 key fix for google maps */
     height: 100%;
 }
 
@@ -563,14 +608,14 @@ button:disabled {
 }
 
 /*QE-111: Annuller afhentning knap*/
-.btn.cancel {
-    width: 100%;
-    padding: 14px;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
+.btn-cancel {
+    width: auto;
+    padding: 6px 12px;
+    background-color: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
@@ -578,16 +623,17 @@ button:disabled {
 }
 
 .btn-cancel:hover {
-    background-color: #c0392b;
+    background-color: rgba(231, 76, 60, 0.1);
 }
 
 .btn-cancel:active {
-    background-color: #a93226;
+    background-color: rgba(231, 76, 60, 0.2);
     transform: scale(0.98);
 }
 
 .btn-cancel:disabled {
-    background-color: #cccccc;
+    color: #cccccc;
+    border-color: #cccccc;
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -835,6 +881,8 @@ td:nth-child(5) {
     align-items: center;
     background: #1e293b;
     padding: 14px 20px;
+    position: sticky;
+    top: 0;
 }
 
 .admin-navbar-right {
@@ -906,6 +954,8 @@ td:nth-child(5) {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
 }
 
 .business-navbar-actions {
@@ -921,4 +971,126 @@ td:nth-child(5) {
 
 .business-logo-btn:hover {
     transform: scale(1.05);
+}
+
+/* Klikbar tabel række */
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #f0f8f0;
+}
+
+/* Expense popup */
+.expense-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+/* Popup box */
+.expense-modal-box {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+/* Luk knap */
+.expense-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: auto;
+    padding: 5px 12px;
+    background: #e74c3c;
+    font-size: 22px;
+}
+
+/* Bilag billede */
+.expense-receipt-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Mørk baggrund bag popup */
+.expense-modal {
+    display: none;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.6);
+
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+/* Selve popup boksen */
+.expense-modal-content {
+    background: white;
+
+    width: 500px;
+    max-width: 90%;
+
+    padding: 30px;
+
+    border-radius: 12px;
+
+    position: relative;
+
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Luk knap */
+.expense-modal-close {
+    position: absolute;
+
+    top: 15px;
+    right: 15px;
+
+    border: none;
+    background: #ff5c5c;
+
+    color: white;
+
+    width: 32px;
+    height: 32px;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    font-size: 18px;
+}
+
+/* Bilag billede */
+.expense-receipt-image {
+    width: 100%;
+
+    margin-top: 15px;
+
+    border-radius: 8px;
+
+    border: 1px solid #ddd;
 }
