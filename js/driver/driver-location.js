@@ -36,6 +36,7 @@ export function startTracking() {
         // GPS-tilladelse givet
         async (position) => {
             const { latitude, longitude , heading} = position.coords
+            console.log('heading:', heading)
             await sendLocation(latitude, longitude)
             window.updateDriverMarker(latitude, longitude, heading) // Heading fortæller hvilken grad gps er peget imod
         },
@@ -46,6 +47,11 @@ export function startTracking() {
             isTracking = false
             document.getElementById('followBtn').style.display = 'none'
             window.stopPolling()
+        },
+        {
+            enableHighAccuracy: true,  // 👈 required for heading on iOS
+            maximumAge: 0,             // 👈 always fresh position
+            timeout: 10000
         }
     )
 
