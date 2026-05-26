@@ -86,8 +86,9 @@ function displayCollections(collections) {
 
         const statusOrder = {
             KLAR: 1,
-            AFHENTET: 2,
-            IKKE_KLAR: 3
+            IKKE_KLAR: 2,
+            AFHENTET: 3,
+
         };
 
         const statusCompare =
