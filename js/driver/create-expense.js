@@ -153,13 +153,17 @@ function validateExpense(expense) {
 function imageToBase64(file) {
 
     return new Promise((resolve, reject) => {
+
         const reader = new FileReader();
-
-        reader.onload = () => resolve(reader.result);
-
-        reader.onerror = error => reject(error);
-
         reader.readAsDataURL(file);
+        reader.onload = function () {
+            console.log(reader.result);
+            resolve(reader.result.toString());
+        };
+
+        reader.onerror = function (error) {
+            reject(error);
+        };
     });
 }
 

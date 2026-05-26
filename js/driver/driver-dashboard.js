@@ -1,5 +1,7 @@
+/* global google */
 import { BASE_URL } from '../../config.js';
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
+import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
 
 export function initDriverDashboard() {
     renderDriverMap();
@@ -9,11 +11,15 @@ export function renderDriverExpenses() {
     renderDriverMap();
 }
 
-let map = null;
-let directionsService = null;
-let directionsRenderer = null;
-let collections = [];
-let tempIdCounter = 0;
+let map = null
+let directionsService = null
+let directionsRenderer = null
+let collections = []
+let locationInterval = null
+let driverMarker = null
+let userPanned = false
+let driverPosition = null
+
 
 // Fast slutpunkt for ruten
 const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
@@ -21,6 +27,9 @@ const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
 const TEMP_STOPS_KEY = "driverTempStops"
 
 function renderDriverMap() {
+    document.body.classList.add('driver-map-page'); //Gør siden fixed, så man ikke kan scrolle unødvendigt
+    document.documentElement.classList.add('driver-map-page'); //-..-
+
     const app = document.getElementById('app');
 
     app.innerHTML = `
@@ -53,18 +62,30 @@ function renderDriverMap() {
             <div class="sidebar" id="sidebar">
 
                 <!-- Sidebar header med lukkeknap -->
-                <div class="sidebar-header">
-                    <span>Luk sidepanel</span>
-                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>
-                </div>
+<!--                <div class="sidebar-header">-->
+<!--                    <span>Luk sidepanel</span>-->
+<!--                    <button class="sidebar-close-btn" onclick="toggleMenu()">✕</button>-->
+<!--                </div>-->
 
                 <!-- QE-174 (Loading-state): som vises indtil data med adresser er hentet fra backend. -->
                 <div id="stopList">
                     <p>Henter afhentninger...</p>
                 </div>
-
-                <!-- Opdater listen med nyt data ved at kalde fetchAndBuildRoute() funktionen -->
-                <button onclick="fetchAndBuildRoute()">🔄 Opdater listen</button>
+                
+                <!-- Live lokation knap -->
+                <button id="locationBtn" onclick="startTracking()" disabled>
+                📍 Henter GPS...
+                </button>
+                
+                <!-- Find mig knap — genaktiverer auto-center -->
+                <button id="followBtn" onclick="followDriver()" style="display:none;">
+               👀 Find mig
+                </button>
+                
+                <!-- Start rute knap — zoomer ind på chaufføren og beregner rute -->
+                <button id="routeBtn" onclick="startRoute()" style="display:none;">
+                 🚀 Start rute
+                </button>
 
                 <!-- Tilføj ny adresse manuelt -->
                 <div class="add-address">
@@ -106,26 +127,52 @@ function renderDriverMap() {
                 </div>
             </div>
         </div>
-    `;
+    `
+    window.initMap = initMap
+    window.toggleMenu = toggleMenu
+    window.fetchAndBuildRoute = fetchAndBuildRoute
+    window.addManualStop = addManualStop
+    window.removeStop = removeStop
+    window.onStopChecked = onStopChecked
+    window.confirmPickup = confirmPickup
+    window.closeModal = closeModal
+    window.doneManualStop = doneManualStop
+    window.startTracking = startTracking
+    window.stopTracking = stopTracking
+    window.removeEventListener('beforeunload', stopTracking)
+    window.addEventListener('beforeunload', stopTracking)
+    window.startPolling = startPolling
+    window.stopPolling = stopPolling
+    window.followDriver = followDriver
+    window.removeDriverMarker = removeDriverMarker
+    window.zoomToDriver = zoomToDriver
+    window.startRoute = startRoute
+    window.updateDriverMarker = updateDriverMarker
 
-    window.initMap = initMap;
-    window.toggleMenu = toggleMenu;
-    window.fetchAndBuildRoute = fetchAndBuildRoute;
-    window.addManualStop = addManualStop;
-    window.removeStop = removeStop;
-    window.onStopChecked = onStopChecked;
-    window.confirmPickup = confirmPickup;
-    window.closeModal = closeModal;
-    window.doneManualStop = doneManualStop;
+    setupDriverNavbarEvents()
 
-    setupDriverNavbarEvents();
+    loadGoogleMapsScript()
+}
 
-    loadGoogleMapsScript();
+// Zoomer ind på chaufføren — bruges ved start sporing og følg mig
+function zoomToDriver() {
+    if (driverMarker !== null) {
+        map.setCenter(driverMarker.getPosition())
+        map.setZoom(20)
+    }
+}
+
+function followDriver() {
+    userPanned = false
+    if (driverMarker !== null) {
+        map.setCenter(driverMarker.getPosition())
+    }
 }
 
 
 async function loadGoogleMapsScript() {
     const { apiKey } = await authFetch(BASE_URL + '/config/maps').then(r => r.json());
+    window._mapId = '53390b484488fad291cb474f' //Map id til at sætte map type til vector, for at tillade rotation af kort (live tracking)
     if (document.getElementById('gmaps-script')) {
         // Tjek om Google Maps scriptet allerede er loadet -> hvis ja køres initMap() med det samme.
         //Ellers loades scriptet igen.
@@ -167,23 +214,41 @@ async function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 55.6761, lng: 12.5683 },
         // Centrer kortet på København
-        zoom: 11
+        zoom: 11,
         // Zoom niveau — højere tal = tættere på
+        mapId: window._mapId, //Henter mapId fra backend
+        // mapId til at enable vector map til rotation af kort
+        rotateControl: true,
     });
 
-    directionsService = new google.maps.DirectionsService();
-    // Service til at beregne ruter mellem adresser
+    window._map = map //bruges til at teste rotation i map
 
-    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsService = new google.maps.DirectionsService();
+    // Service til at beregne ruter mellem adresser, med tykkere blå linjer
+
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        polylineOptions: {
+            strokeColor: '#1A73E8',    // Mere BLÅ
+                strokeWeight: 10,      // Tykkere linje
+                strokeOpacity: 0.9
+        },
+        suppressMarkers: false
+    });
     // Renderer til at tegne ruten på kortet
 
     directionsRenderer.setMap(map);
     // Kobl rendereren til vores kort så ruten tegnes der
 
-    initAutocomplete();
+    // Deaktiver auto-center når brugeren panorerer manuelt
+    map.addListener('dragstart', () => {
+        userPanned = true
+    })
+
+    initAutocomplete()
 
     await fetchAndBuildRoute();
     // Hent afhentninger fra backend og byg ruten
+    checkLocationPermission()
 }
 
 async function fetchAndBuildRoute() {
@@ -210,9 +275,9 @@ async function fetchAndBuildRoute() {
 
     if (collections.length === 0) {
         // Hvis ingen aktive afhentninger, altså at listen er tom, vises denne besked
-        stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>';
-        directionsRenderer.set('directions', null);
-        return;
+        stopList.innerHTML = '<p>Ingen aktive afhentninger i dag.</p>'
+        document.getElementById('locationBtn').style.display = 'none'
+        return
     }
 
     renderStopList();
@@ -228,7 +293,7 @@ function renderStopList() {
 
         const buttons = isManual
             ? `
-                <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button>
+                <!-- <button class="pickup-btn" onclick="onStopChecked('${c.id}')">Afhent</button> -->
                 <button class="pickup-btn done-btn" onclick="doneManualStop('${c.id}')">Done</button>
             `
             : `
@@ -254,7 +319,7 @@ function renderStopList() {
 
                 </div>
 
-                <button class="remove-btn" onclick="removeStop('${c.id}')">×</button>
+                <!-- <button class="remove-btn" onclick="removeStop('${c.id}')">×</button> -->
 
             </div>
         `;
@@ -292,12 +357,31 @@ function calculateRoute() {
         return;
     }
 
-    const origin = addresses[0];
+    // Brug chaufføren position som startpunkt hvis sporing er aktiv
+    // Ellers brug første adresse i listen som før
+    const origin = driverPosition
+        ? { lat: driverPosition.lat, lng: driverPosition.lng }
+        : addresses[0]
 
-    const waypoints = addresses.slice(1).map(address => ({
-        location: address,
-        stopover: true
-    }));
+    if (addresses.length === 1 && !driverPosition) {
+        new google.maps.Geocoder().geocode({ address: addresses[0] }, (results, status) => {
+            if (status === 'OK') {
+                map.setCenter(results[0].geometry.location)
+                new google.maps.Marker({
+                    map,
+                    position: results[0].geometry.location,
+                    title: collections[0].businessName
+                })
+            }
+        })
+        return
+    }
+
+    // Alle adresser er waypoints når chaufføren position bruges som startpunkt
+    const destination = addresses[addresses.length - 1]
+    const waypoints = driverPosition
+        ? addresses.map(addr => ({ location: addr, stopover: true }))
+        : addresses.slice(1).map(addr => ({ location: addr, stopover: true }))
 
     directionsService.route({
         origin: origin,
@@ -448,10 +532,11 @@ async function confirmPickup() {
     showSuccessEmoji();
 
     if (collections.length === 0) {
-        document.getElementById('stopList').innerHTML =
-            '<p>✅ Alle afhentninger afsluttet!</p>';
+        document.getElementById('stopList').innerHTML = '<p>✅ Alle afhentninger afsluttet!</p>'
+        directionsRenderer.set('directions', null)
+        window.stopTracking() // stop sporing og ryd position i backend
+        document.getElementById('locationBtn').style.display = 'none'
 
-        directionsRenderer.set('directions', null);
     } else {
         calculateRoute();
     }
@@ -483,13 +568,134 @@ function closeModal() {
 }
 
 function toggleMenu() {
-    const sidebar = document.getElementById('sidebar');
+    const sidebar = document.getElementById('sidebar')
+    const overlay = document.getElementById('sidebarOverlay')
+    const isOpen = sidebar.classList.toggle('open')
+    overlay.classList.toggle('active', isOpen)
 
-    const overlay = document.getElementById('sidebarOverlay');
+}
 
-    const isOpen = sidebar.classList.toggle('open');
+// Starter polling — henter chaufføren position fra backend hvert 10. sek.
+/*
+Polling er at frontend spørger backend "har du noget nyt ift. lokationen?" med et fast interval,
+som i vores tilfælde er 10 sekunder, uanset om der er nyt eller ej.
+ */
+function startPolling() {
+    stopPolling()
 
-    overlay.classList.toggle('active', isOpen);
+    pollLocation()
+
+    locationInterval = setInterval(pollLocation, 10000)
+}
+
+// Selve poll-kaldet — udskilt så det kan kaldes både med det samme og via interval
+async function pollLocation() {
+    const response = await authFetch(`${BASE_URL}/driver/location`)
+
+    if (response.status === 401) {
+        stopPolling()
+        window.location.hash = '#/login'
+        return
+    }
+
+    if (response.status === 403) {
+        stopPolling()
+        alert('Du har ikke adgang til denne funktion.')
+        return
+    }
+
+    if (response.status === 404) {
+        stopPolling()
+        alert('Sporingen er afbrudt. Tryk start for at genoptage.')
+        return
+    }
+
+    const data = await response.json()
+    updateDriverMarker(data.latitude, data.longitude)
+}
+
+// Stopper polling
+function stopPolling() {
+    if (locationInterval !== null) {
+        clearInterval(locationInterval)
+        locationInterval = null
+    }
+}
+
+// Opdaterer eller opretter chaufføren markør på kortet
+function updateDriverMarker(latitude, longitude, heading) { //henter heading af live tracking, til at styre rotation
+    if (!map) return
+
+    const position = { lat: latitude, lng: longitude }
+    driverPosition = position // gem chaufføren position
+
+    // rotere kort til at matche drivers retning
+    if (heading !== null && heading !== undefined) {
+        map.setHeading(heading)  // Rotere kortet
+    }
+
+    if (driverMarker === null) {
+        // Opret markør første gang
+        driverMarker = new google.maps.Marker({
+            position,
+            map,
+            title: 'Din position',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            }
+        })
+        // Zoom ind første gang markøren vises
+        map.setCenter(position)
+        map.setZoom(15)
+        calculateRoute() // genberegn ruten med chaufføren som startpunkt
+        // Vis rute-knap
+        document.getElementById('routeBtn').style.display = 'block'
+    } else {
+        driverMarker.setPosition(position)
+        driverMarker.setIcon({
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 10,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+        })
+    }
+
+    if (!userPanned) {
+        map.setCenter(position)
+    }
+}
+
+// Fjerner chaufføren markør fra kortet
+function removeDriverMarker() {
+    if (driverMarker !== null) {
+        driverMarker.setMap(null)
+        driverMarker = null
+    }
+    driverPosition = null
+    const routeBtn = document.getElementById('routeBtn')
+    if (routeBtn) routeBtn.style.display = 'none'
+    calculateRoute()
+}
+
+// Zoomer ind på chaufføren og beregner rute fra chaufføren position
+function startRoute() {
+    userPanned = false
+    calculateRoute()
+    // Vent til ruten er beregnet og zoom derefter ind på chaufføren
+    setTimeout(() => {
+        if (driverMarker !== null) {
+            map.setCenter(driverMarker.getPosition())
+            map.setZoom(17)      //Zoom, kan leges med men personlig preference er 17
+            map.setTilt(67.5)    //Tilter kortet 67.5 grader (maks tilt, best til iphone)
+        }
+    }, 500)
 }
 
 function setupDriverNavbarEvents() {
@@ -534,24 +740,27 @@ async function getCurrentUser() {
     }
 }
 
-function saveTempStops(){
+// Gemmer kun midlertidige stop i localStorage
+function saveTempStops() {
     const tempStops = collections.filter(c =>
-    c.id.toString().startsWith("manual"))
+        c.id.toString().startsWith("manual")
+    )
 
     localStorage.setItem(TEMP_STOPS_KEY, JSON.stringify(tempStops))
 }
 
-function loadTempStops(){
+// Henter midlertidige stop fra localStorage
+function loadTempStops() {
     const savedTempStops = localStorage.getItem(TEMP_STOPS_KEY)
 
-    if (!savedTempStops){
+    if (!savedTempStops) {
         return []
     }
 
     return JSON.parse(savedTempStops)
 }
 
-    function clearTempStops(){
-        localStorage.removeItem(TEMP_STOPS_KEY)
-
+// Fjerner midlertidige stop fra localStorage
+function clearTempStops() {
+    localStorage.removeItem(TEMP_STOPS_KEY)
 }

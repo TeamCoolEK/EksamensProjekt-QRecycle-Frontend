@@ -1,5 +1,6 @@
 import { BASE_URL } from "../../config.js";
-import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
+import { initAdminUserList } from "./user-list.js";
+import { renderAdminNavbar, setupAdminNavbarEvents } from "./admin-navbar.js";
 
 export function initCreateUser() {
     renderAdminUserPage();
@@ -8,10 +9,19 @@ export function initCreateUser() {
 // Renderer siden til oprettelse af brugere
 export function renderAdminUserPage() {
 
-    // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Statestik")}
+<<<<<<< HEAD
+        ${renderAdminNavbar("Opret bruger")}
+        
+        <div class="business-actions">
+            <button id="backToUserListBtn">
+                Tilbage til brugerliste
+            </button>
+        </div>
+=======
+        ${renderAdminNavbar("Bruger")}
+>>>>>>> 7dade4d6e6bc8a041bc80c093b3ac1b59576a232
 
         <h1>Opret bruger</h1>
 
@@ -42,46 +52,39 @@ export function renderAdminUserPage() {
         </form>
 
         <p id="userMessage"></p>
-
-        <h2>Brugerliste</h2>
-        <ul id="userList"></ul>
     `;
 
-    setupAdminNavbarEvents()
-
-    // Starter event listeners
+    setupAdminNavbarEvents();
     setupUserEvents();
 }
 
-// Opretter events til bruger-formularen
 function setupUserEvents() {
 
     document
         .getElementById("createUserForm")
         .addEventListener("submit", handleCreateUserSubmit);
+
+    document
+        .getElementById("backToUserListBtn")
+        .addEventListener("click", initAdminUserList);
 }
 
-
-// Håndterer submit af opret bruger-formular
 async function handleCreateUserSubmit(event) {
 
-    // Stopper siden fra at reloade
     event.preventDefault();
 
-    // Bygger user objekt fra inputfelter
     const user = buildUserObject();
 
-    // Validerer input
-    if (!validateUser(user)) {
-        showUserMessage("Udfyld alle felter");
+    const validationMessage = validateUser(user);
+
+    if (validationMessage !== "") {
+        showUserMessage(validationMessage);
         return;
     }
 
-    // Sender bruger til backend
     saveUser(user);
 }
 
-// Bygger user objekt fra formularen
 function buildUserObject() {
 
     return {
@@ -91,65 +94,113 @@ function buildUserObject() {
     };
 }
 
-// Validerer user data
 function validateUser(user) {
 
-    return user.username.trim() !== ""
-        && user.password.trim() !== ""
-        && user.role.trim() !== "";
+    const errors = [];
+
+    if (user.username.trim() === "") {
+        errors.push("brugernavn");
+    }
+
+    if (user.password.trim() === "") {
+        errors.push("password");
+    }
+
+    if (user.role.trim() === "") {
+        errors.push("rolle");
+    }
+
+    if (errors.length > 0) {
+        return "Mangler: " + errors.join(", ");
+    }
+
+    const passwordErrors = [];
+
+    if (user.password.length < 4) {
+        passwordErrors.push("minimum 4 tegn");
+    }
+
+    if (!/[A-Z]/.test(user.password)) {
+        passwordErrors.push("stort bogstav");
+    }
+
+    if (!/[a-z]/.test(user.password)) {
+        passwordErrors.push("lille bogstav");
+    }
+
+    if (!/[0-9]/.test(user.password)) {
+        passwordErrors.push("tal");
+    }
+
+    if (!/[^a-zA-Z0-9]/.test(user.password)) {
+        passwordErrors.push("specialtegn");
+    }
+
+    if (passwordErrors.length > 0) {
+        return "Password mangler: " + passwordErrors.join(", ");
+    }
+
+    return "";
 }
 
-// Sender user til backend API
-function saveUser(user) {
+async function saveUser(user) {
+
     const token = localStorage.getItem("jwt");
 
-    fetch(BASE_URL + "/admin/users", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": token
-        },
-        body: JSON.stringify(user)
-    })
+    try {
 
-        .then(res => {
-            if (!res.ok) {
-                return res.text().then(errorMessage => {
-                    throw new Error(errorMessage);
-                });
-            }
-
-            return res.json();
-        })
-
-        .then(createdUser => {
-            showUserMessage("Bruger oprettet");
-
-            addUserToList(createdUser);
-
-            document
-                .getElementById("createUserForm")
-                .reset();
-        })
-
-        .catch(err => {
-            console.log(err);
-
-            showUserMessage("Fejl: " + err.message);
+        const res = await fetch(BASE_URL + "/admin/users", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token
+            },
+            body: JSON.stringify(user)
         });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Brugeren kunne ikke oprettes"
+            );
+        }
+
+        document
+            .getElementById("createUserForm")
+            .reset();
+
+        showSuccessAnimation();
+
+    } catch (err) {
+
+        console.log(err);
+
+        showUserMessage("Fejl: " + err.message);
+    }
 }
 
-// Tilføjer oprettet bruger til listen på siden
-function addUserToList(user) {
+function showSuccessAnimation() {
 
-    const userList = document.getElementById("userList");
-    const li = document.createElement("li");
-    li.textContent = user.username + " - " + user.role;
+    const emoji = document.createElement("div");
 
-    userList.appendChild(li);
+    emoji.classList.add("success-emoji");
+
+    emoji.textContent = "👍";
+
+    document.body.appendChild(emoji);
+
+    setTimeout(() => {
+        emoji.classList.add("fade-out");
+    }, 1000);
+
+    setTimeout(() => {
+        initAdminUserList();
+    }, 1600);
 }
 
-// Viser besked til brugeren
 function showUserMessage(message) {
 
     document

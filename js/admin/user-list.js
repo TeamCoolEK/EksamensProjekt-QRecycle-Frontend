@@ -1,17 +1,18 @@
 // admin/user-list.js
 
-// QE-42: user-list.js tilføjet - Admin kan se alle brugere
-// QE-319: Admin-side til brugeradministration
 import { BASE_URL } from "../../config.js";
+import { initCreateUser } from "./create-user.js";
+import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminUserList() {
     renderAdminUserListPage();
 }
 
-// QE-319 & QE-325: Renderer siden med liste/tabel
 function renderAdminUserListPage() {
 
     document.getElementById("app").innerHTML = `
+
+        ${renderAdminNavbar("Opret virksomhed")}
     
         <h1>Brugeradministration</h1>
        
@@ -31,29 +32,56 @@ function renderAdminUserListPage() {
         <!-- QE-326: Loading state -->
         <p id="userListMessage">Indlæser brugere...</p>
         
-        <!-- QE-325: Tabel til visning af brugere -->
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Brugernavn</th>
                     <th>Rolle</th>
-                    <th>Handling</th>
+                    <th>Handlinger</th>
                 </tr>
             </thead>
             
             <tbody id="usersTableBody"></tbody>
         </table>
 
+<div
+    id="editUserModal"
+    style="
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,0.5);
+        justify-content:center;
+        align-items:center;
+        z-index:9999;
+    "
+>
+    <div
+        style="
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            min-width:400px;
+            max-width:500px;
+            box-shadow:0 0 20px rgba(0,0,0,0.3);
+        "
+    >
         <div id="editUserContainer"></div>
+    </div>
+</div>
     `;
+    setupAdminNavbarEvents();
 
     setupPageEvents();
-    // QE-324: Starter fetch til backend
     loadAllUsers();
+
+
 }
 
-// Setup navigation events
 function setupPageEvents() {
 
     document
@@ -62,27 +90,19 @@ function setupPageEvents() {
             window.location.hash = "#/admin/dashboard";
         });
 
-    // QE-319: Navigation til opret bruger side
     document
         .getElementById("createUserBtn")
-        .addEventListener("click", () => {
-            window.location.hash = '#/admin/createUser';
-        });
+        .addEventListener("click", initCreateUser);
 }
 
-// Helper til JWT token
 function getToken() {
     return localStorage.getItem("jwt");
 }
 
-// QE-324: Implementer frontend fetch til hentning af brugere
-// QE-326: Loading state (vises før data hentes)
-// QE-327: Fejlhåndtering hvis data ikke kan hentes
 function loadAllUsers() {
 
     const token = getToken();
 
-    // QE-324: Fetch request til backend endpoint
     fetch(BASE_URL + "/admin/users", {
         method: "GET",
         headers: {
@@ -98,7 +118,6 @@ function loadAllUsers() {
             return res.json();
         })
         .then(users => {
-            // QE-325: Viser brugere i tabel
             displayUsers(users);
         })
         .catch(error => {
@@ -118,16 +137,13 @@ function displayUsers(users) {
     const tableBody = document.getElementById("usersTableBody");
     tableBody.innerHTML = "";
 
-    // QE-327: Håndterer tom liste
     if (!Array.isArray(users) || users.length === 0) {
         showUserListMessage("Der er ingen brugere");
         return;
     }
 
-    // QE-326: Fjerner loading besked når data er hentet
     showUserListMessage("");
 
-    // QE-325 & QE-330: Viser hver bruger i tabellen
     users.forEach(user => {
 
         const row = document.createElement("tr");
@@ -154,14 +170,25 @@ function displayUsers(users) {
             <td>${getRoleBadge(user.role)}</td>
             <td>${deleteButton}</td>
                 <!--<button class="delete-business-btn">
+            <td>
+                <button class="edit-business-btn">
+                    Rediger
+                </button>
+
+                <button class="delete-business-btn">
                     Slet
                 </button>
             </td>-->
         `;
 
-        // QE-328: Event listener til slet-knap
-        /*row
-            .querySelector(".delete-user-btn")
+        row
+            .querySelector(".edit-business-btn")
+            .addEventListener("click", function () {
+                showEditUserForm(user);
+            });
+
+        row
+            .querySelector(".delete-business-btn")
             .addEventListener("click", function () {
                 confirmDeleteUser(user.id, user.username);
             });*/
@@ -170,21 +197,184 @@ function displayUsers(users) {
     });
 }
 
-// QE-330: Pæn visning af roller med farver
 function getRoleBadge(role) {
+
     const roleColors = {
-        'ADMIN': '#dc3545',    // Rød
-        'DRIVER': '#007bff',   // Blå
-        'BUSINESS': '#28a745'  // Grøn
+        "ADMIN": "#dc3545",
+        "DRIVER": "#007bff",
+        "BUSINESS": "#28a745"
     };
 
-    const color = roleColors[role] || '#6c757d';
+    const color = roleColors[role] || "#6c757d";
 
     return `<span style="background:${color};color:white;padding:4px 10px;border-radius:4px;font-weight:bold;">${role}</span>`;
 }
 
 // QE-209: Bekræftelsesdialog før sletning
 window.confirmDeleteUser = function(userId, username) {
+function showEditUserForm(user) {
+
+    document.getElementById("editUserModal").style.display = "flex";
+
+    document.getElementById("editUserContainer").innerHTML = `
+
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h2>Rediger bruger</h2>
+
+            <button id="closeEditUserModalBtn" type="button">
+                X
+            </button>
+        </div>
+
+        <form id="editUserForm">
+
+            <input
+                id="editUsername"
+                type="text"
+                placeholder="Brugernavn"
+                value="${user.username}"
+            >
+
+            <input
+                id="editPassword"
+                type="password"
+                placeholder="Ny password"
+            >
+
+            <div class="business-actions">
+                <button type="submit">
+                    Gem ændringer
+                </button>
+
+                <button id="cancelEditUserBtn" type="button">
+                    Annuller
+                </button>
+            </div>
+
+        </form>
+    `;
+
+    document
+        .getElementById("editUserForm")
+        .addEventListener("submit", function (event) {
+            handleEditUserSubmit(event, user.id);
+        });
+
+    document
+        .getElementById("cancelEditUserBtn")
+        .addEventListener("click", closeEditUserModal);
+
+    document
+        .getElementById("closeEditUserModalBtn")
+        .addEventListener("click", closeEditUserModal);
+}
+
+function handleEditUserSubmit(event, userId) {
+
+    event.preventDefault();
+
+    const updatedUser = buildUpdatedUserObject();
+
+    const validationMessage = validateUpdatedUser(updatedUser);
+
+    if (validationMessage !== "") {
+        showUserListMessage(validationMessage);
+        return;
+    }
+
+    updateUser(userId, updatedUser);
+}
+
+function buildUpdatedUserObject() {
+
+    return {
+        username: document.getElementById("editUsername").value,
+        password: document.getElementById("editPassword").value
+    };
+}
+
+function validateUpdatedUser(user) {
+
+    const errors = [];
+
+    if (user.username.trim() === "") {
+        errors.push("brugernavn");
+    }
+
+    if (user.password.trim() === "") {
+        errors.push("password");
+    }
+
+    if (errors.length > 0) {
+        return "Mangler: " + errors.join(", ");
+    }
+
+    const passwordErrors = [];
+
+    if (user.password.length < 4) {
+        passwordErrors.push("minimum 4 tegn");
+    }
+
+    if (!/[A-Z]/.test(user.password)) {
+        passwordErrors.push("stort bogstav");
+    }
+
+    if (!/[a-z]/.test(user.password)) {
+        passwordErrors.push("lille bogstav");
+    }
+
+    if (!/[0-9]/.test(user.password)) {
+        passwordErrors.push("tal");
+    }
+
+    if (!/[^a-zA-Z0-9]/.test(user.password)) {
+        passwordErrors.push("specialtegn");
+    }
+
+    if (passwordErrors.length > 0) {
+        return "Password mangler: " + passwordErrors.join(", ");
+    }
+
+    return "";
+}
+
+function updateUser(userId, updatedUser) {
+
+    const token = getToken();
+
+    fetch(BASE_URL + "/admin/users/" + userId, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `${token}`
+        },
+        body: JSON.stringify(updatedUser)
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                return res.text().then(errorMessage => {
+                    throw new Error(errorMessage);
+                });
+            }
+
+            return res.text();
+        })
+        .then(() => {
+
+            closeEditUserModal();
+
+            loadAllUsers();
+        })
+        .catch(error => {
+
+            console.log(error);
+
+            showUserListMessage("Fejl: " + error.message);
+        });
+}
+
+function confirmDeleteUser(userId, username) {
 
     const confirmed = confirm(`Er du sikker på, at du vil slette brugeren "${username}"?`);
     if (!confirmed) {
@@ -206,7 +396,7 @@ function deleteUser(userId, username) {
     fetch(BASE_URL + "/admin/users/" + userId, {
         method: "DELETE",
         headers: {
-            "Authorization": `${token}` // JWT authentication
+            "Authorization": `${token}`
         }
     })
         .then(res => {
@@ -232,6 +422,10 @@ function deleteUser(userId, username) {
             setTimeout(() => {
                 loadAllUsers();
             }, 1500);
+
+            closeEditUserModal();
+
+            loadAllUsers();
         })
         .catch(error => {
 
@@ -259,4 +453,20 @@ function showUserListMessage(message, color = "black") {
             msgElement.textContent = "";
         }, 5000);
     }
+            showUserListMessage("Fejl: " + error.message);
+        });
+}
+
+function closeEditUserModal() {
+
+    document.getElementById("editUserModal").style.display = "none";
+
+    document.getElementById("editUserContainer").innerHTML = "";
+}
+
+function showUserListMessage(message) {
+
+    document
+        .getElementById("userListMessage")
+        .textContent = message;
 }
