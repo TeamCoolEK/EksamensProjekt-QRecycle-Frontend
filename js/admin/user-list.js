@@ -12,7 +12,7 @@ function renderAdminUserListPage() {
 
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Opret virksomhed")}
+        ${renderAdminNavbar("Opret Bruger")}
     
         <h1>Brugeradministration</h1>
        

@@ -142,8 +142,15 @@ function formatStatus(status){
 
         return statusTexts[status] || status;
     }
-    function showCollectionMessage(message){
 
-        document.getElementById("collectionListMessage")
-            .textContent = message;
+function showCollectionMessage(message) {
+    const messageElement = document.getElementById("collectionListMessage");
+
+    messageElement.textContent = message;
+
+    if (message === "") {
+        messageElement.style.display = "none";
+    } else {
+        messageElement.style.display = "block";
     }
+}
