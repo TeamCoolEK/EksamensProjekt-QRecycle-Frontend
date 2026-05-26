@@ -363,8 +363,13 @@ function closeEditBusinessModal() {
 }
 
 function showBusinessListMessage(message) {
+    const messageElement = document.getElementById("businessListMessage");
 
-    document
-        .getElementById("businessListMessage")
-        .textContent = message;
+    messageElement.textContent = message;
+
+    if (message === "") {
+        messageElement.style.display = "none";
+    } else {
+        messageElement.style.display = "block";
+    }
 }

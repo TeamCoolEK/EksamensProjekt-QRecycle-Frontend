@@ -19,8 +19,6 @@ export function renderAdminUserPage() {
             </button>
         </div>
 
-        ${renderAdminNavbar("Bruger")}
-
         <h1>Opret bruger</h1>
 
         <form id="createUserForm">
