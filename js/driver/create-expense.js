@@ -70,8 +70,16 @@ function renderDriverExpensePage() {
         </div>
     `;
 
+    unmountDriverMap();
+
     setupExpenseEvents();
 }
+
+function unmountDriverMap() {
+    document.body.classList.remove('driver-map-page');
+    document.documentElement.classList.remove('driver-map-page');
+}
+
 
 function setupExpenseEvents() {
 
@@ -166,6 +174,7 @@ function imageToBase64(file) {
         };
     });
 }
+
 
 async function saveExpense(expense) {
 
