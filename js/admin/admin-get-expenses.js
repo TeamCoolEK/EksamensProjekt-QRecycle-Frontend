@@ -119,10 +119,10 @@ function renderAdminExpensesPage() {
     loadAllExpenses();
 }
 
-// Henter alle expenses fra backend
+// Henter alle expenses fra backend.
 function loadAllExpenses() {
 
-    authFetch(BASE_URL + "/admin/business/expenses", {
+    authFetch(BASE_URL + "/admin/expenses", {
         method: "GET"
     })
 

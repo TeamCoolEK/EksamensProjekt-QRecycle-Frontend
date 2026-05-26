@@ -86,8 +86,9 @@ function displayCollections(collections) {
 
         const statusOrder = {
             KLAR: 1,
-            AFHENTET: 2,
-            IKKE_KLAR: 3
+            IKKE_KLAR: 2,
+            AFHENTET: 3,
+
         };
 
         const statusCompare =
@@ -141,8 +142,15 @@ function formatStatus(status){
 
         return statusTexts[status] || status;
     }
-    function showCollectionMessage(message){
 
-        document.getElementById("collectionListMessage")
-            .textContent = message;
+function showCollectionMessage(message) {
+    const messageElement = document.getElementById("collectionListMessage");
+
+    messageElement.textContent = message;
+
+    if (message === "") {
+        messageElement.style.display = "none";
+    } else {
+        messageElement.style.display = "block";
     }
+}

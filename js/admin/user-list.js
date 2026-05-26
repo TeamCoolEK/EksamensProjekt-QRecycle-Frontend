@@ -1,11 +1,8 @@
 // admin/user-list.js
 
-import { BASE_URL } from "../../config.js";
-<<<<<<< HEAD
-import { initCreateUser } from "./create-user.js";
-=======
-import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
->>>>>>> 7dade4d6e6bc8a041bc80c093b3ac1b59576a232
+import {BASE_URL} from "../../config.js";
+import {initCreateUser} from "./create-user.js";
+import {renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
 export function initAdminUserList() {
     renderAdminUserListPage();
@@ -15,7 +12,7 @@ function renderAdminUserListPage() {
 
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Opret virksomhed")}
+        ${renderAdminNavbar("Opret Bruger")}
     
         <h1>Brugeradministration</h1>
        
@@ -31,6 +28,8 @@ function renderAdminUserListPage() {
         
         <h2>Alle brugere</h2>
         
+        <!--QE-210 og QE-327: Succes/fejl beskeder vises her -->
+        <!-- QE-326: Loading state -->
         <p id="userListMessage">Indlæser brugere...</p>
         
         <table>
@@ -79,15 +78,13 @@ function renderAdminUserListPage() {
 
     setupPageEvents();
     loadAllUsers();
-
-
 }
 
 function setupPageEvents() {
 
     document
         .getElementById("backToDashboardBtn")
-        .addEventListener("click", function() {
+        .addEventListener("click", function () {
             window.location.hash = "#/admin/dashboard";
         });
 
@@ -111,30 +108,31 @@ function loadAllUsers() {
         }
     })
         .then(res => {
-
+            // QE-327: Tjekker om request fejlede
             if (!res.ok) {
                 throw new Error("Kunne ikke hente brugere");
             }
-
+            // QE-323: Parser JSON response (UserResponseDTO[])
             return res.json();
         })
         .then(users => {
             displayUsers(users);
         })
         .catch(error => {
-
             console.log(error);
-
+            // QE-327: Viser fejlbesked hvis data ikke kan hentes
             showUserListMessage(
-                "Kunne ikke hente brugere fra databasen"
-            );
+                "Kunne ikke hente brugere fra databasen");
         });
 }
 
+// QE-325: Vis brugere i tabel eller liste på admin-dashboard
+// QE-330: Viser brugernavn og rolle korrekt fra database
+// QE-208: Tilføj slet-knap til hver bruger
+// QE-207: Vis brugerne i tabel med valgbare rækker
 function displayUsers(users) {
 
     const tableBody = document.getElementById("usersTableBody");
-
     tableBody.innerHTML = "";
 
     if (!Array.isArray(users) || users.length === 0) {
@@ -148,32 +146,45 @@ function displayUsers(users) {
 
         const row = document.createElement("tr");
 
+        //QE-207: Gør rækkerne visuelt valgbare ved hover
+        row.style.cursor = "pointer";
+        row.addEventListener("mouseenter", () => {
+            row.style.backgroundColor = "#f5f5f5";
+        });
+        row.addEventListener("mouseleave", () => {
+            row.style.backgroundColor = "";
+        });
+
+        // QE-208: skjul slet-knap for ADMIN brugere
+        const isProtected = user.role === "ADMIN";
+        const deleteButton = isProtected
+            ? `<span style="color:#999;font-size:12px;">🔒 Beskyttet</span>`
+            : `<button class="delete-user-btn">🗑️ Slet</button>`;
+
+        // QE-330: Viser ID, brugernavn og rolle fra database
         row.innerHTML = `
             <td>${user.id}</td>
             <td>${user.username}</td>
             <td>${getRoleBadge(user.role)}</td>
             <td>
-                <button class="edit-business-btn">
-                    Rediger
-                </button>
-
-                <button class="delete-business-btn">
-                    Slet
-                </button>
+                <button class="edit-user-btn">Rediger</button>
+                ${deleteButton}
             </td>
         `;
 
         row
-            .querySelector(".edit-business-btn")
+            .querySelector(".edit-user-btn")
             .addEventListener("click", function () {
                 showEditUserForm(user);
             });
 
-        row
-            .querySelector(".delete-business-btn")
-            .addEventListener("click", function () {
+        // Only attach delete listener if button exists (non-ADMIN users)
+        const deleteBtn = row.querySelector(".delete-user-btn");
+        if (deleteBtn) {
+            deleteBtn.addEventListener("click", function () {
                 confirmDeleteUser(user.id, user.username);
             });
+        }
 
         tableBody.appendChild(row);
     });
@@ -354,21 +365,27 @@ function updateUser(userId, updatedUser) {
         });
 }
 
+// QE-209: Bekræftelsesdialog før sletning
 function confirmDeleteUser(userId, username) {
 
     const confirmed = confirm(`Er du sikker på, at du vil slette brugeren "${username}"?`);
-
     if (!confirmed) {
         return;
     }
-
+    //QE-213: Kald delete funktionen
     deleteUser(userId, username);
 }
 
+// QE-206 og QE-213: Integrer API-kald til sletning
+// QE-328: Sletter bruger og opdaterer listen automatisk
 function deleteUser(userId, username) {
 
     const token = getToken();
 
+    // QE-213: Vis loading state
+    showUserListMessage(`Sletter bruger "${username}"...`);
+
+    // QE-205: API kald til DELETE endpoint
     fetch(BASE_URL + "/admin/users/" + userId, {
         method: "DELETE",
         headers: {
@@ -377,6 +394,7 @@ function deleteUser(userId, username) {
     })
         .then(res => {
 
+            // QE-327: Fejlhåndtering ved sletning og QE-213: håndter fejl states
             if (!res.ok) {
                 return res.text().then(errorMessage => {
                     throw new Error(errorMessage);
@@ -386,6 +404,17 @@ function deleteUser(userId, username) {
             return res.text();
         })
         .then(() => {
+            // QE-210: Vis succesbesked
+            showUserListMessage(
+                `Bruger "${username}" blev slettet`, "green"
+            );
+
+            document.getElementById("editUserContainer").innerHTML = "";
+
+            // QE-328: Opdaterer listen automatisk efter sletning
+            setTimeout(() => {
+                loadAllUsers();
+            }, 1500);
 
             closeEditUserModal();
 
@@ -395,8 +424,26 @@ function deleteUser(userId, username) {
 
             console.log(error);
 
-            showUserListMessage("Fejl: " + error.message);
+            // QE-327 og QE-213: Viser fejlbesked
+            showUserListMessage(
+                `Fejl ved sletning: ${error.message}`,
+                "red"
+            );
         });
+}
+
+// QE-326 & QE-327: Viser loading eller fejlbeskeder
+// QE-210: Vis beskeder til admin
+function showUserListMessage(message, color = "black") {
+    const msgElement = document.getElementById("userListMessage");
+    msgElement.textContent = message;
+    msgElement.style.color = color;
+
+    if (color === "green") {
+        setTimeout(() => {
+            msgElement.textContent = "";
+        }, 5000);
+    }
 }
 
 function closeEditUserModal() {
@@ -404,11 +451,4 @@ function closeEditUserModal() {
     document.getElementById("editUserModal").style.display = "none";
 
     document.getElementById("editUserContainer").innerHTML = "";
-}
-
-function showUserListMessage(message) {
-
-    document
-        .getElementById("userListMessage")
-        .textContent = message;
 }

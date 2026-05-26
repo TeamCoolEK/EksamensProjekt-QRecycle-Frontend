@@ -1,5 +1,5 @@
-import { BASE_URL } from '../../config.js';
-import { authFetch } from '../../utils.js';
+import {BASE_URL} from '../../config.js';
+import {authFetch} from '../../utils.js';
 
 export function initBusinessDashboard() {
     renderBusinessPickupPage();
@@ -10,7 +10,7 @@ function renderBusinessPickupPage() {
 
     document.getElementById("app").innerHTML = `
 
-<<<<<<< HEAD
+
         <!-- Navbar -->
         <nav class="navbar business-navbar">
 
@@ -76,79 +76,7 @@ function renderBusinessPickupPage() {
         </div>
     `;
 
-=======
-    <!-- Navbar -->
-<nav class="navbar business-navbar">
-
-    <div class="business-navbar-left">
-        <img
-            src="img/logo.png"
-            class="nav-logo business-logo-btn"
-            id="businessLogoBtn"
-            alt="Q Genbrug"
-        >
-    </div>
-
-    <span class="nav-title">
-        Velkommen
-    </span>
-
-    <div class="business-navbar-right">
-        <button
-            id="businessLogoutBtn"
-            class="logout-btn"
-        >
-            Log ud
-        </button>
-    </div>
-
-</nav>
-
-    <div class="page-container">
-
-        <h1>Markér pant klar til afhentning</h1>
-
-        <div id="currentStatus" class="status-container">
-            <p>Henter status...</p>
-        </div>
-
-        <form id="pickupForm">
-
-            <!-- QE-74: Input felt til antal poser -->
-            <label for="bagsInput">Antal pant poser:</label>
-
-            <input
-                id="bagsInput"
-                type="number"
-                value="1"
-                min="1"
-                placeholder="Indtast antal pant poser"
-            >
-
-            <!-- QE-73: Knap til at markere klar -->
-            <button type="submit">
-                Markér klar til afhentning
-            </button>
-
-        </form>
-
-        <!-- QE-83: Besked til brugeren -->
-        <p id="pickupMessage"></p>
-
-        <!-- QE-111: Annuller afhentning knap -->
-        <button
-            id="cancelPickupBtn"
-            class="btn-cancel hidden"
-            onclick="handleCancelPickup()"
-        >
-            Annuller afhentning
-        </button>
-
-    </div>
-`;
-
-    //Starter event listeners//
->>>>>>> 7dade4d6e6bc8a041bc80c093b3ac1b59576a232
+    //Starter event listeners
     setupPickupEvents();
     loadCurrentStatus();
 }
@@ -358,28 +286,29 @@ function displayCurrentStatus(collection) {
             cancelBtn.classList.add("hidden");
         }
     }
-}
 
-function getStatusClass(status) {
 
-    const classMap = {
-        "IKKE_KLAR": "status-not-ready",
-        "KLAR": "status-ready",
-        "AFHENTET": "status-picked-up"
-    };
+    function getStatusClass(status) {
 
-    return classMap[status] || "";
-}
+        const classMap = {
+            "IKKE_KLAR": "status-not-ready",
+            "KLAR": "status-ready",
+            "AFHENTET": "status-picked-up"
+        };
 
-function formatDate(dateString) {
+        return classMap[status] || "";
+    }
 
-    const date = new Date(dateString);
+    function formatDate(dateString) {
 
-    return date.toLocaleDateString("da-DK", {
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
+        const date = new Date(dateString);
+
+        return date.toLocaleDateString("da-DK", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+    }
 }
 
 async function handleCancelPickup() {
@@ -439,3 +368,4 @@ async function handleCancelPickup() {
         cancelBtn.textContent = originalText;
     }
 }
+
