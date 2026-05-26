@@ -4,6 +4,7 @@ import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
 
 export function initDriverDashboard() {
+    setViewportNoZoom()
     renderDriverMap();
 }
 
@@ -176,6 +177,11 @@ function followDriver() {
     if (driverMarker !== null) {
         map.setCenter(driverMarker.getPosition())
     }
+}
+//stopper zoom function på iphone
+function setViewportNoZoom() {
+    let viewport = document.querySelector('meta[name="viewport"]');
+    viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
 }
 
 
@@ -750,6 +756,7 @@ function setupDriverNavbarEvents() {
     document
         .getElementById("driverLogoutBtn")
         .addEventListener("click", function () {
+            restoreViewport(); // Tillader iphone at zoome igen ved logud
 
             clearTempStops();
 
@@ -768,6 +775,11 @@ function setupDriverNavbarEvents() {
                 window.location.hash = "#/admin/dashboard";
             }
         });
+}
+// gør at iphone kan zoom igen, sat på log ud funktion
+function restoreViewport() {
+    let viewport = document.querySelector('meta[name="viewport"]');
+    viewport.content = 'width=device-width, initial-scale=1';
 }
 
 async function getCurrentUser() {
