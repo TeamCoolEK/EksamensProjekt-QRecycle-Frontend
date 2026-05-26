@@ -11,32 +11,28 @@ function renderBusinessPickupPage() {
     document.getElementById("app").innerHTML = `
 
 
-        <!-- Navbar -->
-        <nav class="navbar business-navbar">
+<!-- Navbar -->
+<nav class="navbar business-navbar">
 
-            <span class="nav-title">
-                Virksomhed
-            </span>
+    <img
+        src="img/logo.png"
+        class="nav-logo business-logo-btn"
+        id="businessLogoBtn"
+        alt="Q Genbrug"
+    >
 
-            <div class="business-navbar-actions">
+    <span class="nav-title">
+        Virksomhed
+    </span>
 
-                <img
-                    src="img/logo.png"
-                    class="nav-logo business-logo-btn"
-                    id="businessLogoBtn"
-                    alt="Q Genbrug"
-                >
+    <button
+        id="businessLogoutBtn"
+        class="logout-btn"
+    >
+        Log ud
+    </button>
 
-                <button
-                    id="businessLogoutBtn"
-                    class="logout-btn"
-                >
-                    Log ud
-                </button>
-
-            </div>
-
-        </nav>
+</nav>
 
         <div class="page-container">
 
