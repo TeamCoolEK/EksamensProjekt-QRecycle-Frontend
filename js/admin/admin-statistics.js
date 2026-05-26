@@ -316,8 +316,13 @@ function formatDate(dateString) {
 }
 
 function showStatisticsMessage(message) {
+    const messageElement = document.getElementById("statisticsMessage");
 
-    document
-        .getElementById("statisticsMessage")
-        .textContent = message;
+    messageElement.textContent = message;
+
+    if (message === "") {
+        messageElement.style.display = "none";
+    } else {
+        messageElement.style.display = "block";
+    }
 }
