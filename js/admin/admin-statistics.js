@@ -11,7 +11,7 @@ function renderAdminStatisticsPage() {
 
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Statestik")}
+        ${renderAdminNavbar("")}
         
         <h1>Statistik over afhentet pant</h1>
 

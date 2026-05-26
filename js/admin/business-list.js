@@ -1,6 +1,8 @@
 import { BASE_URL } from "../../config.js";
 import { renderAdminNavbar, setupAdminNavbarEvents } from "./admin-navbar.js";
 
+let allBusinesses = []; //til at søge efter virksomhedsnavn
+
 export function initBusinessList() {
     renderAdminBusinessListPage();
 }
@@ -9,7 +11,7 @@ function renderAdminBusinessListPage() {
 
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Virksomhedsadministration")}
+        ${renderAdminNavbar("")}
 
         <h1>Virksomhedsadministration</h1>
 
@@ -22,8 +24,13 @@ function renderAdminBusinessListPage() {
                 Opret virksomhed
             </button>
         </div>
-
-        <h2>Alle virksomheder</h2>
+        
+        <input 
+            type="text"
+            id="userSearchInput"
+            placeholder="Søg efter virksomhed..."
+            style="display: block; margin: 0 auto 12px auto; padding: 8px 12px; width: 100%; max-width: 300px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;"
+        />
 
         <p id="businessListMessage">Indlæser virksomheder...</p>
 
@@ -89,6 +96,12 @@ function setupPageEvents() {
         .addEventListener("click", function () {
             window.location.hash = "#/admin/createBusiness";
         });
+
+    document
+        .getElementById("userSearchInput")
+        .addEventListener("input", function () {
+            filterUsers(this.value);
+        });
 }
 
 function getToken() {
@@ -114,6 +127,7 @@ function loadAllBusinesses() {
             return res.json();
         })
         .then(businesses => {
+            allBusinesses = businesses;
             displayBusinesses(businesses);
         })
         .catch(error => {
@@ -124,6 +138,16 @@ function loadAllBusinesses() {
                 "Kunne ikke hente virksomheder fra databasen"
             );
         });
+}
+
+function filterUsers(query) {
+    const trimmed = query.trim().toLowerCase();
+    const filtered = trimmed === ""
+        ? allBusinesses
+        : allBusinesses.filter(business =>
+            business.companyName.toLowerCase().includes(trimmed)
+        );
+    displayBusinesses(filtered);
 }
 
 function displayBusinesses(businesses) {
@@ -181,15 +205,9 @@ function showEditBusinessForm(business) {
 
     document.getElementById("editBusinessContainer").innerHTML = `
 
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h2>Rediger virksomhed</h2>
-
-            <button id="closeEditBusinessModalBtn" type="button">
-                X
-            </button>
-        </div>
-
         <form id="editBusinessForm">
+        
+            <div id="editBusinessMessage" class="form-message"></div>
 
             <input
                 id="editCompanyName"
@@ -241,10 +259,6 @@ function showEditBusinessForm(business) {
     document
         .getElementById("cancelEditBusinessBtn")
         .addEventListener("click", closeEditBusinessModal);
-
-    document
-        .getElementById("closeEditBusinessModalBtn")
-        .addEventListener("click", closeEditBusinessModal);
 }
 
 function handleUpdateBusinessSubmit(event, businessId) {
@@ -259,11 +273,18 @@ function handleUpdateBusinessSubmit(event, businessId) {
     };
 
     if (!validateUpdatedBusiness(updatedBusiness)) {
-        showBusinessListMessage("Alle felter skal udfyldes");
+        showEditBusinessMessage("Alle felter skal udfyldes");
         return;
     }
 
     updateBusiness(businessId, updatedBusiness);
+}
+
+function showEditBusinessMessage(message) {
+    const el = document.getElementById("editBusinessMessage");
+    if (el) {
+        el.textContent = message;
+    }
 }
 
 function validateUpdatedBusiness(business) {
@@ -316,6 +337,25 @@ function confirmDeleteBusiness(businessId) {
 
     if (!confirmed) {
         return;
+    }
+    if (confirmed) {
+        const confirmed2 = confirm(
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️\n" +
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ADVARSEL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️" +
+            "\n" + "\n" +
+            "ALLE AFHENTNINGER TILKNYTTET TIL VIRKSOMHED   \n" +
+            "                        VIL BLIVE SLETTET!               \n" +
+            "\n" +
+            "           Er du heeeeeeelt sikker på du vil slette?\n" +
+            "\n" +
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️\n" +
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ADVARSEL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️"
+        );
+        if (!confirmed2) {
+            return;
+        }
     }
 
     deleteBusiness(businessId);

@@ -22,7 +22,7 @@ let driverPosition = null
 
 
 // Fast slutpunkt for ruten
-const ROUTE_DESTINATION = "Retortvej 38, 2500 Valby";
+let ROUTE_DESTINATION = null;
 
 const TEMP_STOPS_KEY = "driverTempStops"
 
@@ -93,6 +93,14 @@ function renderDriverMap() {
                     <input type="text" id="newAddress" placeholder="Indtast adresse">
                     <button onclick="addManualStop()">Tilføj</button>
                 </div>
+                
+                <!-- Admin: Opdater slutdestination -->
+                <div class="add-address" id="adminEndStop" style="display:none;">
+                    <p>Opdater slutdestination?</p>
+                    <small id="currentEndStop" style="color: gray;"></small>
+                    <input type="text" id="newEndStop" placeholder="Indtast ny slutadresse">
+                    <button onclick="updateEndStop()">Opdater</button>
+                </div>
 
                 <!-- Udgift knap -->
                 <button class="expense-btn" onclick="window.location.hash='#/driver/createExpenses'">
@@ -131,6 +139,7 @@ function renderDriverMap() {
     window.initMap = initMap
     window.toggleMenu = toggleMenu
     window.fetchAndBuildRoute = fetchAndBuildRoute
+    window.updateEndStop = updateEndStop
     window.addManualStop = addManualStop
     window.removeStop = removeStop
     window.onStopChecked = onStopChecked
@@ -253,6 +262,20 @@ async function initMap() {
 
 async function fetchAndBuildRoute() {
     const stopList = document.getElementById('stopList');
+
+    // Hent slutdestination fra backend
+    const endStopResponse = await authFetch(`${BASE_URL}/admin/get/endstop`);
+    if (endStopResponse.ok) {
+        const endStopData = await endStopResponse.json();
+        ROUTE_DESTINATION = endStopData.address;
+        document.getElementById('currentEndStop').textContent = `Nuværende: ${ROUTE_DESTINATION}`;
+    }
+
+    // Vis admin-sektion hvis brugeren er admin
+    const user = await getCurrentUser();
+    if (user && user.role === 'ADMIN') {
+        document.getElementById('adminEndStop').style.display = 'block';
+    }
 
     // Hent sidebar elementet hvor stop-listen vises
     // Sender GET request til Java backend
@@ -398,6 +421,30 @@ function calculateRoute() {
 
         directionsRenderer.setDirections(result);
     });
+}
+//opdatere endstop (KUN SOM ADMIN)
+async function updateEndStop() {
+    const input = document.getElementById('newEndStop');
+    const address = input.value.trim();
+
+    if (!address) return;
+
+    const response = await authFetch(`${BASE_URL}/admin/save/endstop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address })
+    });
+
+    if (!response.ok) {
+        alert('Kunne ikke opdatere slutdestination.');
+        return;
+    }
+
+    ROUTE_DESTINATION = address;
+    document.getElementById('currentEndStop').textContent = `Nuværende: ${ROUTE_DESTINATION}`;
+    input.value = '';
+    calculateRoute();
+    showSuccessEmoji();
 }
 
 // Tilføj manuel adresse til ruten
