@@ -1,17 +1,15 @@
 import { BASE_URL } from "../../config.js";
-import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
+import { renderAdminNavbar, setupAdminNavbarEvents } from "./admin-navbar.js";
 
 export function initBusinessList() {
     renderAdminBusinessListPage();
 }
 
-// Renderer siden med liste over alle virksomheder
 function renderAdminBusinessListPage() {
 
     document.getElementById("app").innerHTML = `
 
         ${renderAdminNavbar("Virksomhedsadministration")}
-
 
         <h1>Virksomhedsadministration</h1>
 
@@ -43,15 +41,41 @@ function renderAdminBusinessListPage() {
             <tbody id="businessTableBody"></tbody>
         </table>
 
-        <div id="editBusinessContainer"></div>
+        <div
+            id="editBusinessModal"
+            style="
+                display:none;
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                justify-content:center;
+                align-items:center;
+                z-index:9999;
+            "
+        >
+            <div
+                style="
+                    background:white;
+                    padding:30px;
+                    border-radius:12px;
+                    min-width:400px;
+                    max-width:500px;
+                    box-shadow:0 0 20px rgba(0,0,0,0.3);
+                "
+            >
+                <div id="editBusinessContainer"></div>
+            </div>
+        </div>
     `;
-    setupAdminNavbarEvents()
 
+    setupAdminNavbarEvents();
     setupPageEvents();
     loadAllBusinesses();
 }
 
-// Opretter events til navigation
 function setupPageEvents() {
 
     document
@@ -67,12 +91,10 @@ function setupPageEvents() {
         });
 }
 
-// Henter JWT token
 function getToken() {
     return localStorage.getItem("jwt");
 }
 
-// Henter alle virksomheder fra backend
 function loadAllBusinesses() {
 
     const token = getToken();
@@ -104,7 +126,6 @@ function loadAllBusinesses() {
         });
 }
 
-// Viser virksomheder i tabellen
 function displayBusinesses(businesses) {
 
     const tableBody = document.getElementById("businessTableBody");
@@ -154,12 +175,19 @@ function displayBusinesses(businesses) {
     });
 }
 
-// Viser formular til redigering af virksomhed
 function showEditBusinessForm(business) {
+
+    document.getElementById("editBusinessModal").style.display = "flex";
 
     document.getElementById("editBusinessContainer").innerHTML = `
 
-        <h2>Rediger virksomhed</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h2>Rediger virksomhed</h2>
+
+            <button id="closeEditBusinessModalBtn" type="button">
+                X
+            </button>
+        </div>
 
         <form id="editBusinessForm">
 
@@ -191,13 +219,15 @@ function showEditBusinessForm(business) {
                 placeholder="Adresse"
             >
 
-            <button type="submit">
-                Gem ændringer
-            </button>
+            <div class="business-actions">
+                <button type="submit">
+                    Gem ændringer
+                </button>
 
-            <button type="button" id="cancelEditBusinessBtn">
-                Annuller
-            </button>
+                <button type="button" id="cancelEditBusinessBtn">
+                    Annuller
+                </button>
+            </div>
 
         </form>
     `;
@@ -210,10 +240,13 @@ function showEditBusinessForm(business) {
 
     document
         .getElementById("cancelEditBusinessBtn")
-        .addEventListener("click", cancelEditBusiness);
+        .addEventListener("click", closeEditBusinessModal);
+
+    document
+        .getElementById("closeEditBusinessModalBtn")
+        .addEventListener("click", closeEditBusinessModal);
 }
 
-// Håndterer submit af redigeringsformular
 function handleUpdateBusinessSubmit(event, businessId) {
 
     event.preventDefault();
@@ -233,7 +266,6 @@ function handleUpdateBusinessSubmit(event, businessId) {
     updateBusiness(businessId, updatedBusiness);
 }
 
-// Validerer redigeret virksomhedsdata
 function validateUpdatedBusiness(business) {
 
     return business.companyName.trim() !== ""
@@ -242,7 +274,6 @@ function validateUpdatedBusiness(business) {
         && business.address.trim() !== "";
 }
 
-// Sender opdateret virksomhed til backend
 function updateBusiness(businessId, updatedBusiness) {
 
     const token = getToken();
@@ -267,9 +298,7 @@ function updateBusiness(businessId, updatedBusiness) {
         })
         .then(() => {
 
-            showBusinessListMessage("Virksomhed opdateret");
-
-            document.getElementById("editBusinessContainer").innerHTML = "";
+            closeEditBusinessModal();
 
             loadAllBusinesses();
         })
@@ -281,13 +310,6 @@ function updateBusiness(businessId, updatedBusiness) {
         });
 }
 
-// Annullerer redigering
-function cancelEditBusiness() {
-
-    document.getElementById("editBusinessContainer").innerHTML = "";
-}
-
-// Viser bekræftelsesdialog før sletning
 function confirmDeleteBusiness(businessId) {
 
     const confirmed = confirm("Er du sikker på, at du vil slette virksomheden?");
@@ -299,7 +321,6 @@ function confirmDeleteBusiness(businessId) {
     deleteBusiness(businessId);
 }
 
-// Sletter virksomhed fra backend
 function deleteBusiness(businessId) {
 
     const token = getToken();
@@ -322,9 +343,7 @@ function deleteBusiness(businessId) {
         })
         .then(() => {
 
-            showBusinessListMessage("Virksomhed slettet");
-
-            document.getElementById("editBusinessContainer").innerHTML = "";
+            closeEditBusinessModal();
 
             loadAllBusinesses();
         })
@@ -336,7 +355,13 @@ function deleteBusiness(businessId) {
         });
 }
 
-// Viser besked til admin
+function closeEditBusinessModal() {
+
+    document.getElementById("editBusinessModal").style.display = "none";
+
+    document.getElementById("editBusinessContainer").innerHTML = "";
+}
+
 function showBusinessListMessage(message) {
 
     document

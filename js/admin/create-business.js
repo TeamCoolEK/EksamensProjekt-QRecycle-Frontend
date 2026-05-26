@@ -1,65 +1,38 @@
 import { BASE_URL } from "../../config.js";
-import{renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
-
+import { renderAdminNavbar, setupAdminNavbarEvents } from "./admin-navbar.js";
 
 export function initCreateBusiness() {
     renderBusinessPage();
 }
 
-// Renderer siden til oprettelse af virksomheder
 function renderBusinessPage() {
 
     document.getElementById("app").innerHTML = `
 
         ${renderAdminNavbar("Opret virksomhed")}
 
-
         <h1>Opret virksomhed</h1>
+
         <form id="createBusinessForm">
-            <input
-                id="companyName"
-                type="text"
-                placeholder="Virksomhedsnavn"
-            >
-
-            <input
-                id="contactPerson"
-                type="text"
-                placeholder="Kontaktperson"
-            >
-
-            <input
-                id="phoneNumber"
-                type="text"
-                placeholder="Telefonnummer"
-            >
-
-            <input
-                id="address"
-                type="text"
-                placeholder="Adresse"
-            >
-
-            <input
-                id="username"
-                type="text"
-                placeholder="Brugernavn"
-            >
+            <input id="companyName" type="text" placeholder="Virksomhedsnavn">
+            <input id="contactPerson" type="text" placeholder="Kontaktperson">
+            <input id="phoneNumber" type="text" placeholder="Telefonnummer">
+            <input id="address" type="text" placeholder="Adresse">
+            <input id="username" type="text" placeholder="Brugernavn">
+            <input id="password" type="password" placeholder="Password">
 
             <button type="submit">
                 Opret virksomhed
             </button>
-
         </form>
 
         <p id="businessMessage"></p>
     `;
 
-    setupAdminNavbarEvents()
+    setupAdminNavbarEvents();
     setupBusinessEvents();
 }
 
-// Opretter events til business funktionalitet
 function setupBusinessEvents() {
 
     document
@@ -67,21 +40,22 @@ function setupBusinessEvents() {
         .addEventListener("submit", handleCreateBusinessSubmit);
 }
 
-// Håndterer submit af formular
-async function handleCreateBusinessSubmit(event) {
+function handleCreateBusinessSubmit(event) {
 
     event.preventDefault();
+
     const business = buildBusinessObject();
 
-    if (!validateBusiness(business)) {
-        showBusinessMessage("Udfyld alle felter");
+    const validationMessage = validateBusiness(business);
+
+    if (validationMessage !== "") {
+        showBusinessMessage(validationMessage);
         return;
     }
 
     saveBusiness(business);
 }
 
-// Bygger business objekt fra inputfelter
 function buildBusinessObject() {
 
     return {
@@ -89,24 +63,45 @@ function buildBusinessObject() {
         contactPerson: document.getElementById("contactPerson").value,
         phoneNumber: document.getElementById("phoneNumber").value,
         address: document.getElementById("address").value,
-        username: document.getElementById("username").value
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value
     };
 }
 
-// Validerer business data
 function validateBusiness(business) {
 
-    return business.companyName.trim() !== ""
-        && business.contactPerson.trim() !== ""
-        && business.phoneNumber.trim() !== ""
-        && business.address.trim() !== ""
-        && business.username.trim() !== "";
+    const errors = [];
+
+    if (business.companyName.trim() === "") errors.push("virksomhedsnavn");
+    if (business.contactPerson.trim() === "") errors.push("kontaktperson");
+    if (business.phoneNumber.trim() === "") errors.push("telefonnummer");
+    if (business.address.trim() === "") errors.push("adresse");
+    if (business.username.trim() === "") errors.push("brugernavn");
+    if (business.password.trim() === "") errors.push("password");
+
+    if (errors.length > 0) {
+        return "Mangler: " + errors.join(", ");
+    }
+
+    const passwordErrors = [];
+
+    if (business.password.length < 4) passwordErrors.push("minimum 4 tegn");
+    if (!/[A-Z]/.test(business.password)) passwordErrors.push("stort bogstav");
+    if (!/[a-z]/.test(business.password)) passwordErrors.push("lille bogstav");
+    if (!/[0-9]/.test(business.password)) passwordErrors.push("tal");
+    if (!/[^a-zA-Z0-9]/.test(business.password)) passwordErrors.push("specialtegn");
+
+    if (passwordErrors.length > 0) {
+        return "Password mangler: " + passwordErrors.join(", ");
+    }
+
+    return "";
 }
 
-
-// Sender business til backend API
 function saveBusiness(business) {
-    const token = localStorage.getItem('jwt');
+
+    const token = localStorage.getItem("jwt");
+
     fetch(BASE_URL + "/admin/businesses", {
         method: "POST",
         headers: {
@@ -115,7 +110,6 @@ function saveBusiness(business) {
         },
         body: JSON.stringify(business)
     })
-
         .then(res => {
 
             if (!res.ok) {
@@ -124,17 +118,20 @@ function saveBusiness(business) {
 
             return res.json();
         })
-
         .then(createdBusiness => {
 
             console.log(createdBusiness);
 
-            // Sender admin tilbage til virksomhedslisten
             window.location.hash = "#/admin/businessList";
         })
+        .catch(error => {
+
+            console.log(error);
+
+            showBusinessMessage("Fejl: " + error.message);
+        });
 }
 
-// Viser besked til brugeren
 function showBusinessMessage(message) {
 
     document
