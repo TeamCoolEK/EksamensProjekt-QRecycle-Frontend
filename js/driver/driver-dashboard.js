@@ -270,7 +270,7 @@ async function fetchAndBuildRoute() {
     const stopList = document.getElementById('stopList');
 
     // Hent slutdestination fra backend
-    const endStopResponse = await authFetch(`${BASE_URL}/admin/get/endstop`);
+    const endStopResponse = await authFetch(`${BASE_URL}/driver/get/endstop`);
     if (endStopResponse.ok) {
         const endStopData = await endStopResponse.json();
         ROUTE_DESTINATION = endStopData.address;
