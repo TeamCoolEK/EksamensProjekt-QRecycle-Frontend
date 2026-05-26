@@ -1,5 +1,5 @@
-import { BASE_URL } from '../../config.js';
-import { authFetch } from '../../utils.js';
+import {BASE_URL} from '../../config.js';
+import {authFetch} from '../../utils.js';
 
 export function initBusinessDashboard() {
     renderBusinessPickupPage();
@@ -309,62 +309,63 @@ function displayCurrentStatus(collection) {
             year: "numeric"
         });
     }
+}
 
-    async function handleCancelPickup() {
+async function handleCancelPickup() {
 
-        if (!confirm("Er du sikker på at du vil annullere afhentningen?")) {
+    if (!confirm("Er du sikker på at du vil annullere afhentningen?")) {
+        return;
+    }
+
+    const cancelBtn = document.getElementById("cancelPickupBtn");
+    const originalText = cancelBtn.textContent;
+
+    try {
+
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = "Annullerer...";
+
+        const collectionId = await getMyCollectionId();
+
+        if (collectionId === null) {
+            showPickupMessage("Der er ingen aktiv afhentning at annullere");
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = originalText;
             return;
         }
 
-        const cancelBtn = document.getElementById("cancelPickupBtn");
-        const originalText = cancelBtn.textContent;
-
-        try {
-
-            cancelBtn.disabled = true;
-            cancelBtn.textContent = "Annullerer...";
-
-            const collectionId = await getMyCollectionId();
-
-            if (collectionId === null) {
-                showPickupMessage("Der er ingen aktiv afhentning at annullere");
-                cancelBtn.disabled = false;
-                cancelBtn.textContent = originalText;
-                return;
-            }
-
-            const response = await authFetch(
-                BASE_URL + "/business/collection/" + collectionId + "/cancel",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
+        const response = await authFetch(
+            BASE_URL + "/business/collection/" + collectionId + "/cancel",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                 }
-            );
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText);
             }
+        );
 
-            const updatedCollection = await response.json();
-
-            showPickupMessage("Afhentningen er annulleret");
-
-            displayCurrentStatus(updatedCollection);
-
-            cancelBtn.disabled = false;
-            cancelBtn.textContent = originalText;
-
-        } catch (error) {
-
-            console.error("Fejl ved annullering:", error);
-
-            showPickupMessage("Fejl: " + error.message);
-
-            cancelBtn.disabled = false;
-            cancelBtn.textContent = originalText;
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
         }
+
+        const updatedCollection = await response.json();
+
+        showPickupMessage("Afhentningen er annulleret");
+
+        displayCurrentStatus(updatedCollection);
+
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = originalText;
+
+    } catch (error) {
+
+        console.error("Fejl ved annullering:", error);
+
+        showPickupMessage("Fejl: " + error.message);
+
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = originalText;
     }
 }
+
