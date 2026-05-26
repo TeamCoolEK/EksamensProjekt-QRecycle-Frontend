@@ -13,7 +13,7 @@ function renderAdminDashboardPage() {
     // Indsætter HTML i app containeren
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Dashboard")}
+        ${renderAdminNavbar("")}
 
 
         <h1>Admin dashboard</h1>

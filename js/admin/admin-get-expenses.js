@@ -3,6 +3,7 @@ import { authFetch } from "../../utils.js";
 import { renderAdminNavbar, setupAdminNavbarEvents } from "./admin-navbar.js";
 
 let allExpenses = [];
+let sortDateAsc = null; // null = unsorted, true = asc, false = desc
 
 // Starter siden
 export function initAdminExpenses() {
@@ -15,7 +16,7 @@ function renderAdminExpensesPage() {
     // Indsætter HTML i app container
     document.getElementById("app").innerHTML = `
     
-        ${renderAdminNavbar("Udgifter")}
+        ${renderAdminNavbar("")}
     
         <h1>Registrerede udgifter</h1>
     
@@ -40,6 +41,7 @@ function renderAdminExpensesPage() {
                 <tr>
                     <th>Titel</th>
                     <th>Beløb</th>
+                    <th id="dateHeader" style="cursor: pointer;">Dato ↕</th>
                 </tr>
             </thead>
               
@@ -114,6 +116,20 @@ function renderAdminExpensesPage() {
                 closeExpenseModal();
             }
         });
+
+    //Sortere dato by date
+    document.getElementById("dateHeader").addEventListener("click", function () {
+        sortDateAsc = sortDateAsc !== true; // toggle: null/false → true, true → false
+        this.textContent = sortDateAsc ? "Dato ↑" : "Dato ↓";
+
+        const sorted = [...allExpenses].sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return sortDateAsc ? dateA - dateB : dateB - dateA;
+        });
+
+        displayExpenses(sorted);
+    });
 
     // Henter alle expenses fra backend
     loadAllExpenses();
@@ -191,6 +207,7 @@ function displayExpenses(expenses) {
         row.innerHTML = `
             <td>${expense.title}</td>
             <td>${expense.amount} kr.</td>
+            <td>${expense.date}</td>
         `;
 
         // Tilføjer rækken til tabellen
@@ -213,7 +230,7 @@ function openExpenseModal(index) {
         formatDate(expense.date);
 
     document.getElementById("modalExpenseUserId").textContent =
-        expense.userId;
+        expense.username ?? "Slettet bruger";
 
     document.getElementById("modalExpenseReceipt").src =
         expense.receiptBase64;

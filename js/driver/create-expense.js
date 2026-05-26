@@ -70,8 +70,16 @@ function renderDriverExpensePage() {
         </div>
     `;
 
+    unmountDriverMap();
+
     setupExpenseEvents();
 }
+
+function unmountDriverMap() {
+    document.body.classList.remove('driver-map-page');
+    document.documentElement.classList.remove('driver-map-page');
+}
+
 
 function setupExpenseEvents() {
 
@@ -99,7 +107,7 @@ async function handleImagePreview() {
         return;
     }
 
-    const receiptBase64 = await imageToBase64(file);
+    const receiptBase64 = await imageToCompressedBase64(file);
 
     const previewImage = document.getElementById("previewImage");
 
@@ -134,7 +142,7 @@ async function handleExpenseSubmit(event) {
 async function buildExpenseObject() {
 
     const file = document.getElementById("expenseReceipt").files[0];
-    const receiptBase64 = file ? await imageToBase64(file) : null;
+    const receiptBase64 = file ? await imageToCompressedBase64(file) : null;
 
     return {
         title: document.getElementById("expenseTitle").value,
@@ -150,20 +158,56 @@ function validateExpense(expense) {
         && expense.receiptBase64 !== null;
 }
 
-function imageToBase64(file) {
+function imageToCompressedBase64(file) {
 
     return new Promise((resolve, reject) => {
 
         const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function () {
-            console.log(reader.result);
-            resolve(reader.result.toString());
+
+        reader.onload = function (event) {
+
+            const image = new Image();
+
+            image.onload = function () {
+
+                const maxWidth = 900;
+                const maxHeight = 900;
+
+                let width = image.width;
+                let height = image.height;
+
+                if (width > height && width > maxWidth) {
+                    height = Math.round(height * maxWidth / width);
+                    width = maxWidth;
+                } else if (height > maxHeight) {
+                    width = Math.round(width * maxHeight / height);
+                    height = maxHeight;
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+
+                const context = canvas.getContext("2d");
+                context.drawImage(image, 0, 0, width, height);
+
+                const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+
+                resolve(compressedBase64);
+            };
+
+            image.onerror = function (error) {
+                reject(error);
+            };
+
+            image.src = event.target.result;
         };
 
         reader.onerror = function (error) {
             reject(error);
         };
+
+        reader.readAsDataURL(file);
     });
 }
 

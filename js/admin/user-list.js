@@ -4,6 +4,8 @@ import {BASE_URL} from "../../config.js";
 import {initCreateUser} from "./create-user.js";
 import {renderAdminNavbar, setupAdminNavbarEvents} from "./admin-navbar.js";
 
+let allUsers = []; //til at gemme alle users til søgebaren
+
 export function initAdminUserList() {
     renderAdminUserListPage();
 }
@@ -12,7 +14,7 @@ function renderAdminUserListPage() {
 
     document.getElementById("app").innerHTML = `
 
-        ${renderAdminNavbar("Opret Bruger")}
+        ${renderAdminNavbar("")}
     
         <h1>Brugeradministration</h1>
        
@@ -26,7 +28,12 @@ function renderAdminUserListPage() {
             </button>
         </div>
         
-        <h2>Alle brugere</h2>
+        <input 
+            type="text"
+            id="userSearchInput"
+            placeholder="Søg efter brugernavn..."
+            style="display: block; margin: 0 auto 12px auto; padding: 8px 12px; width: 100%; max-width: 300px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;"
+        /> <!-- search bar til at sotere efter navn -->
         
         <!--QE-210 og QE-327: Succes/fejl beskeder vises her -->
         <!-- QE-326: Loading state -->
@@ -91,6 +98,12 @@ function setupPageEvents() {
     document
         .getElementById("createUserBtn")
         .addEventListener("click", initCreateUser);
+
+    document
+        .getElementById("userSearchInput")
+        .addEventListener("input", function () {
+            filterUsers(this.value);
+        });
 }
 
 function getToken() {
@@ -116,6 +129,7 @@ function loadAllUsers() {
             return res.json();
         })
         .then(users => {
+            allUsers = users;
             displayUsers(users);
         })
         .catch(error => {
@@ -124,6 +138,16 @@ function loadAllUsers() {
             showUserListMessage(
                 "Kunne ikke hente brugere fra databasen");
         });
+}
+//Metode til at filtrere users i søgebaren
+function filterUsers(query) {
+    const trimmed = query.trim().toLowerCase();
+    const filtered = trimmed === ""
+        ? allUsers
+        : allUsers.filter(user =>
+            user.username.toLowerCase().includes(trimmed)
+        );
+    displayUsers(filtered);
 }
 
 // QE-325: Vis brugere i tabel eller liste på admin-dashboard
@@ -191,11 +215,10 @@ function displayUsers(users) {
 }
 
 function getRoleBadge(role) {
-
     const roleColors = {
-        "ADMIN": "#dc3545",
-        "DRIVER": "#007bff",
-        "BUSINESS": "#28a745"
+        "ADMIN": "#e74c3c",
+        "DRIVER": "#1e293b",
+        "BUSINESS": "var(--qr-green)"
     };
 
     const color = roleColors[role] || "#6c757d";
@@ -208,42 +231,22 @@ function showEditUserForm(user) {
     document.getElementById("editUserModal").style.display = "flex";
 
     document.getElementById("editUserContainer").innerHTML = `
+<div>
+    <form id="editUserForm">
 
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h2>Rediger bruger</h2>
+        <div id="editUserMessage" class="form-message"></div>
 
-            <button id="closeEditUserModalBtn" type="button">
-                X
-            </button>
+        <input id="editUsername" type="text" placeholder="Brugernavn" value="${user.username}">
+        <input id="editPassword" type="password" placeholder="Ny password">
+
+        <div class="business-actions">
+            <button type="submit">Gem ændringer</button>
+            <button id="cancelEditUserBtn" type="button">Annuller</button>
         </div>
 
-        <form id="editUserForm">
-
-            <input
-                id="editUsername"
-                type="text"
-                placeholder="Brugernavn"
-                value="${user.username}"
-            >
-
-            <input
-                id="editPassword"
-                type="password"
-                placeholder="Ny password"
-            >
-
-            <div class="business-actions">
-                <button type="submit">
-                    Gem ændringer
-                </button>
-
-                <button id="cancelEditUserBtn" type="button">
-                    Annuller
-                </button>
-            </div>
-
-        </form>
-    `;
+    </form>
+</div>
+`;
 
     document
         .getElementById("editUserForm")
@@ -253,10 +256,6 @@ function showEditUserForm(user) {
 
     document
         .getElementById("cancelEditUserBtn")
-        .addEventListener("click", closeEditUserModal);
-
-    document
-        .getElementById("closeEditUserModalBtn")
         .addEventListener("click", closeEditUserModal);
 }
 
@@ -269,11 +268,18 @@ function handleEditUserSubmit(event, userId) {
     const validationMessage = validateUpdatedUser(updatedUser);
 
     if (validationMessage !== "") {
-        showUserListMessage(validationMessage);
+        showEditUserMessage(validationMessage);
         return;
     }
 
     updateUser(userId, updatedUser);
+}
+
+function showEditUserMessage(message) {
+    const el = document.getElementById("editUserMessage");
+    if (el) {
+        el.textContent = message;
+    }
 }
 
 function buildUpdatedUserObject() {
@@ -371,6 +377,25 @@ function confirmDeleteUser(userId, username) {
     const confirmed = confirm(`Er du sikker på, at du vil slette brugeren "${username}"?`);
     if (!confirmed) {
         return;
+    }
+    if (confirmed) {
+        const confirmed2 = confirm(
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️\n" +
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ADVARSEL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️" +
+            "\n" + "\n" +
+            'ALLE AFGIFTER TILKNYTTET TIL BRUGEREN   \n' +
+            "                        VIL BLIVE SLETTET!               \n" +
+            "\n" +
+            "           Er du heeeeeeelt sikker på du vil slette?\n" +
+            "\n" +
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️\n" +
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ADVARSEL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" +
+            "⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️️"
+        );
+        if (!confirmed2) {
+            return;
+        }
     }
     //QE-213: Kald delete funktionen
     deleteUser(userId, username);

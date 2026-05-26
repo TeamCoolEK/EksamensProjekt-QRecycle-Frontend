@@ -657,8 +657,7 @@ button:disabled {
 #app > h2,
 #statisticsMessage,
 #statisticsSummary,
-#app > table,
-#app > .business-actions {
+#app > table  {
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
@@ -704,6 +703,10 @@ button:disabled {
     border: 1px solid var(--qr-border);
     border-radius: 18px;
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Knapper */
@@ -1093,4 +1096,64 @@ td:nth-child(5) {
     border-radius: 8px;
 
     border: 1px solid #ddd;
+}
+/* edit og slet knap til bruger admin og virksomhed admin */
+.edit-user-btn,
+.delete-user-btn {
+    width: auto;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 6px;
+    box-shadow: none;
+    background: var(--qr-green);
+}
+
+.edit-user-btn:hover {
+    background: var(--qr-green-dark);
+}
+
+.delete-user-btn {
+    background: #e74c3c;
+}
+
+.delete-user-btn:hover {
+    background: #c0392b;
+}
+
+td:last-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.form-message {
+    color: red;
+    font-size: 0.875rem;
+    min-height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.edit-business-btn,
+.delete-business-btn {
+    width: auto;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 6px;
+    box-shadow: none;
+    background: var(--qr-green);
+}
+
+.edit-business-btn:hover {
+    background: var(--qr-green-dark);
+}
+
+.delete-business-btn {
+    background: #e74c3c;
+}
+
+.delete-business-btn:hover {
+    background: #c0392b;
 }

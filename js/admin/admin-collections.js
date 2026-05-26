@@ -9,7 +9,7 @@ function renderAdminCollectionsPage(){
 
     document.getElementById("app").innerHTML = `
     
-        ${renderAdminNavbar("Afhentninger")}
+        ${renderAdminNavbar("")}
     
     <h1>Afhentningshistorik</h1>
     
