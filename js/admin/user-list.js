@@ -27,8 +27,8 @@ function renderAdminUserListPage() {
         
         <h2>Alle brugere</h2>
         
+        <!--QE-210 og QE-327: Succes/fejl beskeder vises her -->
         <!-- QE-326: Loading state -->
-        <!-- QE-327: Fejlbesked vises her -->
         <p id="userListMessage">Indlæser brugere...</p>
         
         <!-- QE-325: Tabel til visning af brugere -->
@@ -38,6 +38,7 @@ function renderAdminUserListPage() {
                     <th>ID</th>
                     <th>Brugernavn</th>
                     <th>Rolle</th>
+                    <th>Handling</th>
                 </tr>
             </thead>
             
@@ -89,12 +90,10 @@ function loadAllUsers() {
         }
     })
         .then(res => {
-
             // QE-327: Tjekker om request fejlede
             if (!res.ok) {
                 throw new Error("Kunne ikke hente brugere");
             }
-
             // QE-323: Parser JSON response (UserResponseDTO[])
             return res.json();
         })
@@ -103,22 +102,20 @@ function loadAllUsers() {
             displayUsers(users);
         })
         .catch(error => {
-
             console.log(error);
-
             // QE-327: Viser fejlbesked hvis data ikke kan hentes
             showUserListMessage(
-                "Kunne ikke hente brugere fra databasen"
-            );
+                "Kunne ikke hente brugere fra databasen");
         });
 }
 
 // QE-325: Vis brugere i tabel eller liste på admin-dashboard
 // QE-330: Viser brugernavn og rolle korrekt fra database
+// QE-208: Tilføj slet-knap til hver bruger
+// QE-207: Vis brugerne i tabel med valgbare rækker
 function displayUsers(users) {
 
     const tableBody = document.getElementById("usersTableBody");
-
     tableBody.innerHTML = "";
 
     // QE-327: Håndterer tom liste
@@ -135,24 +132,39 @@ function displayUsers(users) {
 
         const row = document.createElement("tr");
 
+        //QE-207: Gør rækkerne visuelt valgbare ved hover
+        row.style.cursor = "pointer";
+        row.addEventListener("mouseenter", () => {
+            row.style.backgroundColor = "#f5f5f5";
+        });
+        row.addEventListener("mouseleave", () => {
+            row.style.backgroundColor = "";
+        });
+
+        // QE-208: skjul slet-knap for ADMIN brugere
+        const isProtected = user.role==='ADMIN';
+        const deleteButton = isProtected
+            ? `<span style="color:#999;font-size:12px;">🔒 Beskyttet</span>`
+            : `<button class="delete-business-btn" onclick="confirmDeleteUser(${user.id}, '${user.username}')">🗑️ Slet</button>`;
+
         // QE-330: Viser ID, brugernavn og rolle fra database
         row.innerHTML = `
             <td>${user.id}</td>
             <td>${user.username}</td>
             <td>${getRoleBadge(user.role)}</td>
-            <td>
-                <button class="delete-business-btn">
+            <td>${deleteButton}</td>
+                <!--<button class="delete-business-btn">
                     Slet
                 </button>
-            </td>
+            </td>-->
         `;
 
         // QE-328: Event listener til slet-knap
-        row
-            .querySelector(".delete-business-btn")
+        /*row
+            .querySelector(".delete-user-btn")
             .addEventListener("click", function () {
                 confirmDeleteUser(user.id, user.username);
-            });
+            });*/
 
         tableBody.appendChild(row);
     });
@@ -171,23 +183,26 @@ function getRoleBadge(role) {
     return `<span style="background:${color};color:white;padding:4px 10px;border-radius:4px;font-weight:bold;">${role}</span>`;
 }
 
-// Bekræftelsesdialog før sletning
-function confirmDeleteUser(userId, username) {
+// QE-209: Bekræftelsesdialog før sletning
+window.confirmDeleteUser = function(userId, username) {
 
     const confirmed = confirm(`Er du sikker på, at du vil slette brugeren "${username}"?`);
-
     if (!confirmed) {
         return;
     }
-
+    //QE-213: Kald delete funktionen
     deleteUser(userId, username);
 }
-
+// QE-206 og QE-213: Integrer API-kald til sletning
 // QE-328: Sletter bruger og opdaterer listen automatisk
 function deleteUser(userId, username) {
 
     const token = getToken();
 
+    // QE-213: Vis loading state
+    showUserListMessage(`Sletter bruger "${username}"...`);
+
+    // QE-205: API kald til DELETE endpoint
     fetch(BASE_URL + "/admin/users/" + userId, {
         method: "DELETE",
         headers: {
@@ -196,7 +211,7 @@ function deleteUser(userId, username) {
     })
         .then(res => {
 
-            // QE-327: Fejlhåndtering ved sletning
+            // QE-327: Fejlhåndtering ved sletning og QE-213: håndter fejl states
             if (!res.ok) {
                 return res.text().then(errorMessage => {
                     throw new Error(errorMessage);
@@ -206,27 +221,42 @@ function deleteUser(userId, username) {
             return res.text();
         })
         .then(() => {
-
-            showUserListMessage(`Bruger "${username}" slettet`);
+            // QE-210: Vis succesbesked
+            showUserListMessage
+            (`Bruger "${username}" blev slettet`, "green"
+            );
 
             document.getElementById("editUserContainer").innerHTML = "";
 
             // QE-328: Opdaterer listen automatisk efter sletning
-            loadAllUsers();
+            setTimeout(() => {
+                loadAllUsers();
+            }, 1500);
         })
         .catch(error => {
 
             console.log(error);
 
-            // QE-327: Viser fejlbesked
-            showUserListMessage("Fejl: " + error.message);
+            // QE-327 og QE-213: Viser fejlbesked
+            showUserListMessage(
+                `Fejl ved sletning: ${error.message}`,
+                "red"
+            );
         });
 }
 
 // QE-326 & QE-327: Viser loading eller fejlbeskeder
-function showUserListMessage(message) {
+// QE-210: Vis beskeder til admin
+function showUserListMessage(message, color = "black") {
 
-    document
-        .getElementById("userListMessage")
-        .textContent = message;
+    const msgElement = document.getElementById("userListMessage");
+    msgElement.textContent = message;
+    msgElement.style.color = color;
+
+    // Ryd besked efter 5 sekunder (undtagen loading/error)
+    if (color === "green") {
+        setTimeout(() => {
+            msgElement.textContent = "";
+        }, 5000);
+    }
 }
