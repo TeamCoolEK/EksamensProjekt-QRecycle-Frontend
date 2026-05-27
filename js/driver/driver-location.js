@@ -39,15 +39,16 @@ export function startTracking() {
     watchId = navigator.geolocation.watchPosition(
         // GPS-tilladelse givet
         async (position) => {
-            console.log('position fired', position.coords)
             const { latitude, longitude , heading} = position.coords
-            console.log('heading:', heading)
+            // Only use heading if actually moving (speed > 0.5 m/s ≈ walking pace)
+            const MIN_SPEED_MS = 1.5;
+            const reliableHeading = (speed !== null && speed > MIN_SPEED_MS) ? heading : null
             try {
                 await sendLocation(latitude, longitude)
             } catch (err) {
                 console.log('sendLocation failed:', err)
             }
-            window.updateDriverMarker(latitude, longitude, heading) // Heading fortæller hvilken grad gps er peget imod
+            window.updateDriverMarker(latitude, longitude, reliableHeading) // Heading fortæller hvilken grad gps er peget imod
         },
         // GPS-tilladelse afvist eller utilgængelig
         () => {
