@@ -39,7 +39,7 @@ export function startTracking() {
     watchId = navigator.geolocation.watchPosition(
         // GPS-tilladelse givet
         async (position) => {
-            const { latitude, longitude , heading} = position.coords
+            const { latitude, longitude , heading, speed} = position.coords
             // Only use heading if actually moving (speed > 0.5 m/s ≈ walking pace)
             const MIN_SPEED_MS = 1.5;
             const reliableHeading = (speed !== null && speed > MIN_SPEED_MS) ? heading : null
