@@ -2,6 +2,7 @@
 import { BASE_URL } from '../../config.js';
 import { authFetch } from '../../utils.js'; //se forklaring i utils.js
 import { checkLocationPermission, startTracking, stopTracking } from './driver-location.js';
+import { requestWakeLock, releaseWakeLock, setupWakeLockVisibilityListener } from './wake-lock.js';
 
 export function initDriverDashboard() {
     setViewportNoZoom()
@@ -159,8 +160,8 @@ function renderDriverMap() {
     window.startRoute = startRoute
     window.updateDriverMarker = updateDriverMarker
 
+    setupWakeLockVisibilityListener();
     setupDriverNavbarEvents()
-
     loadGoogleMapsScript()
 }
 
@@ -259,6 +260,8 @@ async function initMap() {
         userPanned = true
     })
 
+    await requestWakeLock(); //requester WakeLock når kortet oprettes
+
     initAutocomplete()
 
     await fetchAndBuildRoute();
@@ -270,7 +273,7 @@ async function fetchAndBuildRoute() {
     const stopList = document.getElementById('stopList');
 
     // Hent slutdestination fra backend
-    const endStopResponse = await authFetch(`${BASE_URL}/admin/get/endstop`);
+    const endStopResponse = await authFetch(`${BASE_URL}/driver/get/endstop`);
     if (endStopResponse.ok) {
         const endStopData = await endStopResponse.json();
         ROUTE_DESTINATION = endStopData.address;
@@ -755,7 +758,9 @@ function setupDriverNavbarEvents() {
 
     document
         .getElementById("driverLogoutBtn")
-        .addEventListener("click", function () {
+        .addEventListener("click", async function () {
+            await releaseWakeLock(); // Fjerner WakeLock fra brugerens iphone
+
             restoreViewport(); // Tillader iphone at zoome igen ved logud
 
             clearTempStops();
